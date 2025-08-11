@@ -1,39 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 710 710">
-  <defs>
-    <style>
-      .cls-1 {
-        fill: #231f20;
-      }
-
-      .cls-2 {
-        stroke: red;
-      }
-
-      .cls-2, .cls-3 {
-        fill: none;
-        stroke-miterlimit: 10;
-        stroke-width: 20px;
-      }
-
-      .cls-3 {
-        stroke: #149ec9;
-      }
-    </style>
-  </defs>
-  <g id="Layer_1-2" data-name="Layer 1">
-    <g>
-      <circle class="cls-3" cx="355" cy="355" r="345"/>
-      <g>
-        <path class="cls-3" d="M355,51.5v23.5V28v23.5Z"/>
-        <path class="cls-3" d="M355,656.5v23.5-47,23.5Z"/>
-      </g>
-      <g>
-        <path class="cls-3" d="M657.5,363.11h-23.5,47-23.5Z"/>
-        <path class="cls-3" d="M52.5,363.11h-23.5,47-23.5Z"/>
-      </g>
-      <polyline class="cls-2" points="192 232 355 363.11 572 185"/>
-      <circle class="cls-1" cx="355" cy="363.11" r="21"/>
-    </g>
-  </g>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1171 1171">
+  <!-- Generator: Adobe Illustrator 29.5.0, SVG Export Plug-In . SVG Version: 2.1.0 Build 137)  -->
+  <image width="4684" height="4684" transform="scale(.2)" xlink:href="../clock.png"/>
 </svg>

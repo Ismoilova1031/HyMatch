@@ -21,7 +21,13 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
          "backgroundColor": "#f9efe7"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_EXTERNAL_STORAGE",
+        "MEDIA_WRITE",
+        "MEDIA_READ"
+      ]
     },
     "web": {
       "bundler": "metro",

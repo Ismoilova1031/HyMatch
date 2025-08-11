@@ -1,2 +1,5 @@
-import SwipeScreen from '../../screens/SwipeScreen';
-export default SwipeScreen;
+import SwipeScreen from '@/screens/SwipeScreen';
+
+export default function Index() {
+  return <SwipeScreen />;
+}
