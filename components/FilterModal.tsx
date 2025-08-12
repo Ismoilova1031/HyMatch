@@ -9,32 +9,13 @@ import {
   Modal,
   FlatList,
   TouchableOpacity,
-  Image,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { useTranslation } from 'react-i18next';
+import { iconMap } from '@/constants/iconMap';
+import SmartImage from '@/components/SmartImage';
 
-// --- ICONS: BARCHASI BIR YERDA ---
-const iconMap = {
-  company: require('../assets/images/icons/company.png'),
-  coin: require('../assets/images/icons/coin.png'),
-  calendar: require('../assets/images/icons/calendar.png'),
-  steps: require('../assets/images/icons/steps.png'),
-  todo: require('../assets/images/icons/todo.png'),
-  language: require('../assets/images/icons/language.png'),
-  train: require('../assets/images/icons/train.png'),
-  train_coin: require('../assets/images/icons/train_coin.png'),
-  step: require('../assets/images/icons/step.png'),
-  clock: require('../assets/images/icons/clock.png'),
-  school_steps: require('../assets/images/icons/school_steps.png'),
-  star: require('../assets/images/icons/star.png'),
-  done: require('../assets/images/icons/done.png'),
-  sort: require('../assets/images/icons/sort.png'),
-  close: require('../assets/images/icons/close.png'),
-  sort_check: require('../assets/images/icons/sort_check.png'),
-  sort_check_up: require('../assets/images/icons/sort_check_up.png'),
-  sort_check_down: require('../assets/images/icons/sort_check_down.png'),
-};
+// using centralized iconMap from constants
 
 const filterValueIcons = {
   // 希望職種
@@ -62,6 +43,32 @@ const filterValueIcons = {
 };
 const defaultIcon = iconMap.star;
 
+// Map raw option values to stable translation keys
+const filterValueTranslationKey: Record<string, string> = {
+  // job types
+  'レストラン': 'jobType.restaurant',
+  'コンビニ': 'jobType.convenienceStore',
+  'オフィス': 'jobType.office',
+  'デリバリー': 'jobType.delivery',
+  '清掃': 'jobType.cleaning',
+  // japanese levels
+  N1: 'japaneseLevel.N1',
+  N2: 'japaneseLevel.N2',
+  N3: 'japaneseLevel.N3',
+  N4: 'japaneseLevel.N4',
+  N5: 'japaneseLevel.N5',
+  // commute convenience
+  '駅近': 'commute.nearStation',
+  '交通費支給': 'commute.transportationCovered',
+  '自転車OK': 'commute.bikeOk',
+  'バス利用可': 'commute.busOk',
+  // work importance
+  'シフト自由': 'important.flexibleShift',
+  '研修あり': 'important.training',
+  '未経験OK': 'important.noExperienceOk',
+  '語学力活かせる': 'important.useLanguage',
+};
+
 const filterRowIcons: Record<string, any> = {
   jobType: iconMap.company,
   japaneseLevel: iconMap.language,
@@ -76,31 +83,35 @@ interface FilterModalProps {
   onApply: (sortKey: string | null, sortDirection: 'asc' | 'desc' | null, wage: number, filters: Record<string, string[]>) => void;
 }
 
-const filterOptions = [
-  { key: 'jobType', label: '希望職種', values: ['レストラン', 'コンビニ', 'オフィス', 'デリバリー', '清掃'] },
-  { key: 'japaneseLevel', label: '日本語レベル', values: ['N1', 'N2', 'N3', 'N4', 'N5'] },
-  { key: 'wageRange', label: '時給', values: [] },
-  { key: 'convenient', label: '通勤に便利なこと', values: ['駅近', '交通費支給', '自転車OK', 'バス利用可'] },
-  { key: 'important', label: '仕事で大事な事', values: ['シフト自由', '研修あり', '未経験OK', '語学力活かせる'] },
-];
+// Factory helpers to generate i18n-aware labels inside the component
+const getFilterOptions = (t: (key: string) => string) => ([
+  { key: 'jobType', label: t('desiredJobType'), values: ['レストラン', 'コンビニ', 'オフィス', 'デリバリー', '清掃'] },
+  { key: 'japaneseLevel', label: t('japaneseLevel'), values: ['N1', 'N2', 'N3', 'N4', 'N5'] },
+  { key: 'wageRange', label: t('wageRange'), values: [] },
+  { key: 'convenient', label: t('commuteConvenience'), values: ['駅近', '交通費支給', '自転車OK', 'バス利用可'] },
+  { key: 'important', label: t('workImportance'), values: ['シフト自由', '研修あり', '未経験OK', '語学力活かせる'] },
+]);
 
-const sortOptions = [
-  { key: 'salary', label: '給与' },
-  { key: 'home_step', label: '通勤時間（自宅から）' },
-  { key: 'school_step', label: '通勤時間（学校から）' },
-  { key: 'date', label: '投稿日順' },
-];
+const getSortOptions = (t: (key: string) => string) => ([
+  { key: 'salary', label: t('salary') },
+  { key: 'home_step', label: t('homeStep') },
+  { key: 'school_step', label: t('schoolStep') },
+  { key: 'date', label: t('date') },
+]);
 
-const salaryTypes = ['時給', '日給', '週給', '月給'];
+const getSalaryTypes = (t: (key: string) => string) => ([t('hourly'), t('daily'), t('weekly'), t('monthly')]);
 
 const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply }) => {
   const { t } = useTranslation();
+  const filterOptions = getFilterOptions(t);
+  const sortOptions = getSortOptions(t);
+  const salaryTypes = getSalaryTypes(t);
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [selectedValues, setSelectedValues] = useState<Record<string, string[]>>({});
   const [activeSortKey, setActiveSortKey] = useState<string | null>(null);
   const [selectedSort, setSelectedSort] = useState<string | null>(null);
   const [selectedSortDirection, setSelectedSortDirection] = useState<'asc' | 'desc' | null>(null);
-  const [selectedWageType, setSelectedWageType] = useState<string>('時給');
+  const [selectedWageType, setSelectedWageType] = useState<string>(salaryTypes[0]);
   const [selectedWage, setSelectedWage] = useState(1400);
 
   const toggleValue = (key: string, value: string) => {
@@ -120,50 +131,14 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply }) 
 
   if (!visible) return null;
 
-  // Filter value icon mapping
-  // const filterValueIcons: Record<string, any> = {
-  //   // 希望職種
-  //   'レストラン': require('../assets/images/icons/company.png'),
-  //   'コンビニ': require('../assets/images/icons/coin.png'),
-  //   'オフィス': require('../assets/images/icons/calendar.png'),
-  //   'デリバリー': require('../assets/images/icons/steps.png'),
-  //   '清掃': require('../assets/images/icons/todo.png'),
-  //   // 日本語レベル
-  //   N1: require('../assets/images/icons/language.png'),
-  //   N2: require('../assets/images/icons/language.png'),
-  //   N3: require('../assets/images/icons/language.png'),
-  //   N4: require('../assets/images/icons/language.png'),
-  //   N5: require('../assets/images/icons/language.png'),
-  //   // 通勤に便利なこと
-  //   '駅近': require('../assets/images/icons/train.png'),
-  //   '交通費支給': require('../assets/images/icons/train_coin.png'),
-  //   '自転車OK': require('../assets/images/icons/steps.png'),
-  //   'バス利用可': require('../assets/images/icons/step.png'), 
-  //   // 仕事で大事な事
-  //   'シフト自由': require('../assets/images/icons/clock.png'),
-  //   '研修あり': require('../assets/images/icons/school_steps.png'),
-  //   '未経験OK': require('../assets/images/icons/star.png'),
-  //   '語学力活かせる': require('../assets/images/icons/language.png'),
-  // };
-  // const defaultIcon = require('../assets/images/icons/star.png');
-
-  // Filter qatorlari uchun icon mapping
-  // const filterRowIcons: Record<string, any> = {
-  //   jobType: require('../assets/images/icons/company.png'),
-  //   japaneseLevel: require('../assets/images/icons/language.png'),
-  //   wageRange: require('../assets/images/icons/coin.png'),
-  //   convenient: require('../assets/images/icons/steps.png'),
-  //   important: require('../assets/images/icons/star.png'),
-  // };
-
   return (
     <View style={styles.overlay}>
       <View style={styles.modalBox}>
         <View style={styles.topBar}>
-          <Image source={iconMap.sort} style={styles.icon} />
+          <SmartImage source={iconMap.sort} style={styles.icon} />
           <Text style={styles.title}>{t('sort')}</Text>
           <Pressable onPress={onClose}>
-            <Image source={iconMap.close} style={styles.icon} />
+            <SmartImage source={iconMap.close} style={styles.icon} />
           </Pressable>
         </View>
 
@@ -174,12 +149,12 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply }) 
   <View style={styles.sortItem}>
     <View style={styles.circle}>
       {selectedSort === 'salary' && (
-        <Image source={iconMap.done} style={{ width: 30, height: 30 }} />
+        <SmartImage source={iconMap.done} style={{ width: 30, height: 30 }} />
       )}
     </View>
-    <Image source={iconMap.coin} style={styles.sortIconLeft} />
+    <SmartImage source={iconMap.coin} style={styles.sortIconLeft} />
     <Text style={styles.sortLabel}>{t('salary')}</Text>
-    <Image
+    <SmartImage
       source={
         selectedSort === 'salary' && selectedSortDirection
           ? selectedSortDirection === 'asc'
@@ -197,12 +172,12 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply }) 
   <View style={styles.sortItem}>
     <View style={styles.circle}>
       {selectedSort === 'home_step' && (
-        <Image source={iconMap.done} style={{ width: 30, height: 30 }} />
+        <SmartImage source={iconMap.done} style={{ width: 30, height: 30 }} />
       )}
     </View>
-    <Image source={iconMap.steps} style={styles.sortIconLeft} />
-    <Text style={styles.sortLabel}>通勤時間（自宅から）</Text>
-    <Image
+    <SmartImage source={iconMap.steps} style={styles.sortIconLeft} />
+    <Text style={styles.sortLabel}>{t('homeStep')}</Text>
+    <SmartImage
       source={
         selectedSort === 'home_step' && selectedSortDirection
           ? selectedSortDirection === 'asc'
@@ -220,12 +195,12 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply }) 
   <View style={styles.sortItem}>
     <View style={styles.circle}>
       {selectedSort === 'school_step' && (
-        <Image source={iconMap.done} style={{ width: 30, height: 30 }} />
+        <SmartImage source={iconMap.done} style={{ width: 30, height: 30 }} />
       )}
     </View>
-    <Image source={iconMap.school_steps} style={styles.sortIconLeft} />
-    <Text style={styles.sortLabel}>通勤時間（学校から）</Text>
-    <Image
+    <SmartImage source={iconMap.school_steps} style={styles.sortIconLeft} />
+    <Text style={styles.sortLabel}>{t('schoolStep')}</Text>
+    <SmartImage
       source={
         selectedSort === 'school_step' && selectedSortDirection
           ? selectedSortDirection === 'asc'
@@ -243,12 +218,12 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply }) 
   <View style={styles.sortItem}>
     <View style={styles.circle}>
       {selectedSort === 'date' && (
-        <Image source={iconMap.done} style={{ width: 30, height: 30 }} />
+        <SmartImage source={iconMap.done} style={{ width: 30, height: 30 }} />
       )}
     </View>
-    <Image source={iconMap.calendar} style={styles.sortIconLeft} />
-    <Text style={styles.sortLabel}>投稿日順</Text>
-    <Image
+    <SmartImage source={iconMap.calendar} style={styles.sortIconLeft} />
+    <Text style={styles.sortLabel}>{t('date')}</Text>
+    <SmartImage
       source={
         selectedSort === 'date' && selectedSortDirection
           ? selectedSortDirection === 'asc'
@@ -296,7 +271,7 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply }) 
             >
               <View style={styles.circle}>
                 {selectedWageType === type && (
-                  <Image
+                  <SmartImage
                     source={iconMap.done}
                     style={{ width: 30, height: 30 }}
                   />
@@ -304,7 +279,7 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply }) 
               </View>
               <Text style={{ flex: 1 }}>{t(type)}</Text>
               {selectedWageType === type && (
-                <Image
+                <SmartImage
                   source={
                     selectedSortDirection === 'asc'
                       ? iconMap.sort_check_up
@@ -326,15 +301,15 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply }) 
             >
               <View style={styles.circle}>
                 {selectedSort === opt.key && selectedSortDirection === 'asc' && (
-                  <Image
+                  <SmartImage
                     source={iconMap.done}
                     style={{ width: 30, height: 30 }}
                   />
                 )}
               </View>
-              <Text style={{ flex: 1 }}>{opt.label} (小→大)</Text>
+              <Text style={{ flex: 1 }}>{opt.label} {t('smallToLarge')}</Text>
               {selectedSort === opt.key && selectedSortDirection === 'asc' && (
-                <Image
+                <SmartImage
                   source={iconMap.sort_check_up}
                   style={{ width: 16, height: 32, marginLeft: 10 }}
                 />
@@ -350,15 +325,15 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply }) 
             >
               <View style={styles.circle}>
                 {selectedSort === opt.key && selectedSortDirection === 'desc' && (
-                  <Image
+                  <SmartImage
                     source={iconMap.done}
                     style={{ width: 30, height: 30 }}
                   />
                 )}
               </View>
-              <Text style={{ flex: 1 }}>{opt.label} (大→小)</Text>
+              <Text style={{ flex: 1 }}>{opt.label} {t('largeToSmall')}</Text>
               {selectedSort === opt.key && selectedSortDirection === 'desc' && (
-                <Image
+                <SmartImage
                   source={iconMap.sort_check_down}
                   style={{ width: 16, height: 32, marginLeft: 10 }}
                 />
@@ -387,19 +362,19 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply }) 
                 <View style={styles.circle}>
                   {opt.key === 'wageRange'
                     ? selectedWage > 1000 && (
-                        <Image
+                        <SmartImage
                           source={iconMap.done}
                           style={{ width: 30, height: 30 }}
                         />
                       )
                     : selectedValues[opt.key]?.length ? (
-                        <Image
+                        <SmartImage
                           source={iconMap.done}
                           style={{ width: 30, height: 30 }}
                         />
                       ) : null}
                 </View>
-                <Image
+                <SmartImage
                   source={filterRowIcons[opt.key] || defaultIcon}
                   style={{ width: 28, height: 28, marginRight: 8 }}
                 />
@@ -434,7 +409,7 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply }) 
                 maximumTrackTintColor="#ccc"
               />
               <Pressable onPress={() => setActiveModal(null)} style={styles.closeSubModal}>
-                <Text style={{ color: '#fff' }}>✅ Tanlash</Text>
+                <Text style={{ color: '#fff' }}>{t('select')}</Text>
               </Pressable>
             </View>
           </View>
@@ -461,16 +436,16 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply }) 
                         <View style={styles.optionItem}>
                           <View style={styles.checkbox}>
                             {selectedValues[opt.key]?.includes(item) && (
-                              <Image source={iconMap.done} style={{ width: 30, height: 30 }} />
+                              <SmartImage source={iconMap.done} style={{ width: 30, height: 30 }} />
                             )}
                           </View>
-                          <Text>{t(item)}</Text>
+                          <Text>{t(filterValueTranslationKey[item] || item)}</Text>
                         </View>
                       </TouchableOpacity>
                     )}
                   />
                   <Pressable onPress={() => setActiveModal(null)} style={styles.closeSubModal}>
-                    <Text style={{ color: '#fff' }}>✅ Tanlash</Text>
+                    <Text style={{ color: '#fff' }}>{t('select')}</Text>
                   </Pressable>
                 </View>
               </View>

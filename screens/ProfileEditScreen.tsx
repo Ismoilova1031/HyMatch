@@ -13,14 +13,102 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
-import { ProfileData, JAPANESE_PREFECTURES, NATIONALITIES, VISA_TYPES, JAPANESE_LEVELS, WORK_DAYS, GENDERS, OCCUPATIONS } from '@/types/profile';
+import { ProfileData, JAPANESE_PREFECTURES, NATIONALITIES, VISA_TYPES, JAPANESE_LEVELS, WORK_DAYS, OCCUPATIONS } from '@/types/profile';
 import { iconMap } from '@/constants/iconMap';
+import SmartImage from '@/components/SmartImage';
 import { fetchAddressByPostalCode, fetchAddressByPostalCodeAlternative } from '@/utils/addressApi';
 import { generateProfilePDF, savePDFToDownloads, sharePDF } from '@/utils/pdfGenerator';
 import { useTranslation } from 'react-i18next';
 
 export default function ProfileEditScreen() {
   const { t } = useTranslation();
+  // Map raw option values to translation keys for pickers
+  const optionValueTranslationKey: Record<string, string> = {
+    // Visa types
+    '留学': 'visa.student',
+    '就学': 'visa.school',
+    '研修': 'visa.training',
+    '家族滞在': 'visa.familyStay',
+    '特定活動': 'visa.specificActivity',
+    '短期滞在': 'visa.shortStay',
+    '永住者': 'visa.permanentResident',
+    '日本人の配偶者等': 'visa.spouseOfJapanese',
+    '永住者の配偶者等': 'visa.spouseOfPermanent',
+    '定住者': 'visa.longTermResident',
+    '高度専門職': 'visa.highlySkilled',
+    '技術・人文知識・国際業務': 'visa.engineerHumanitiesIntl',
+    '技能': 'visa.skilledLabor',
+    'その他': 'common.other',
+    // Occupations (labels)
+    '学生': 'occupation.student',
+    '会社員': 'occupation.employed',
+    '無職': 'occupation.unemployed',
+    // Nationalities (examples; add more as needed)
+    '中国': 'nationality.china',
+    '韓国': 'nationality.korea',
+    'ウズベキスタン': 'nationality.uzbekistan',
+    'ベトナム': 'nationality.vietnam',
+    'フィリピン': 'nationality.philippines',
+    'ネパール': 'nationality.nepal',
+    'インドネシア': 'nationality.indonesia',
+    'タイ': 'nationality.thailand',
+    'ミャンマー': 'nationality.myanmar',
+    'カンボジア': 'nationality.cambodia',
+    'ラオス': 'nationality.laos',
+    'モンゴル': 'nationality.mongolia',
+    'スリランカ': 'nationality.srilanka',
+    'バングラデシュ': 'nationality.bangladesh',
+    'パキスタン': 'nationality.pakistan',
+    'インド': 'nationality.india',
+    // Prefectures (full)
+    '北海道': 'pref.hokkaido',
+    '青森県': 'pref.aomori',
+    '岩手県': 'pref.iwate',
+    '宮城県': 'pref.miyagi',
+    '秋田県': 'pref.akita',
+    '山形県': 'pref.yamagata',
+    '福島県': 'pref.fukushima',
+    '茨城県': 'pref.ibaraki',
+    '栃木県': 'pref.tochigi',
+    '群馬県': 'pref.gunma',
+    '埼玉県': 'pref.saitama',
+    '千葉県': 'pref.chiba',
+    '東京都': 'pref.tokyo',
+    '神奈川県': 'pref.kanagawa',
+    '新潟県': 'pref.niigata',
+    '富山県': 'pref.toyama',
+    '石川県': 'pref.ishikawa',
+    '福井県': 'pref.fukui',
+    '山梨県': 'pref.yamanashi',
+    '長野県': 'pref.nagano',
+    '岐阜県': 'pref.gifu',
+    '静岡県': 'pref.shizuoka',
+    '愛知県': 'pref.aichi',
+    '三重県': 'pref.mie',
+    '滋賀県': 'pref.shiga',
+    '京都府': 'pref.kyoto',
+    '大阪府': 'pref.osaka',
+    '兵庫県': 'pref.hyogo',
+    '奈良県': 'pref.nara',
+    '和歌山県': 'pref.wakayama',
+    '鳥取県': 'pref.tottori',
+    '島根県': 'pref.shimane',
+    '岡山県': 'pref.okayama',
+    '広島県': 'pref.hiroshima',
+    '山口県': 'pref.yamaguchi',
+    '徳島県': 'pref.tokushima',
+    '香川県': 'pref.kagawa',
+    '愛媛県': 'pref.ehime',
+    '高知県': 'pref.kochi',
+    '福岡県': 'pref.fukuoka',
+    '佐賀県': 'pref.saga',
+    '長崎県': 'pref.nagasaki',
+    '熊本県': 'pref.kumamoto',
+    '大分県': 'pref.oita',
+    '宮崎県': 'pref.miyazaki',
+    '鹿児島県': 'pref.kagoshima',
+    '沖縄県': 'pref.okinawa',
+  };
   
   const [profile, setProfile] = useState<ProfileData>({
     firstName: '',
@@ -220,7 +308,7 @@ export default function ProfileEditScreen() {
           }
         },
         {
-          text: 'OK',
+          text: t('close'),
           style: 'default'
         }
       ]);
@@ -244,7 +332,7 @@ export default function ProfileEditScreen() {
   ) => (
     <View style={styles.inputRow}>
       <View style={styles.iconContainer}>
-        {icon && <Image source={icon} style={styles.smallIcon} />}
+        {icon && <SmartImage source={icon} style={styles.smallIcon} />}
       </View>
       <View style={styles.inputContainer}>
         <TextInput
@@ -273,7 +361,7 @@ export default function ProfileEditScreen() {
   ) => (
     <View style={styles.inputRow}>
       <View style={styles.iconContainer}>
-        {icon && <Image source={icon} style={styles.smallIcon} />}
+        {icon && <SmartImage source={icon} style={styles.smallIcon} />}
       </View>
       <View style={styles.inputContainer}>
         <View style={styles.pickerContainer}>
@@ -286,7 +374,11 @@ export default function ProfileEditScreen() {
             {items.map((item, index) => (
               <Picker.Item
                 key={index}
-                label={typeof item === 'string' ? item : item.label}
+                label={
+                  typeof item === 'string'
+                    ? t(optionValueTranslationKey[item] || item)
+                    : t(optionValueTranslationKey[item.label] || item.label)
+                }
                 value={typeof item === 'string' ? item : item.key}
               />
             ))}
@@ -299,27 +391,30 @@ export default function ProfileEditScreen() {
   const renderGenderSelection = () => (
     <View style={styles.inputRow}>
       <View style={styles.iconContainer}>
-        <Image source={iconMap.person} style={styles.smallIcon} />
+        <SmartImage source={iconMap.gender} style={styles.smallIcon} />
       </View>
       <View style={styles.inputContainer}>
-        <View style={styles.genderContainer}>
-          {GENDERS.map((gender) => (
-            <TouchableOpacity
-              key={gender.key}
-              style={[
-                styles.genderButton,
-                profile.gender === gender.key && styles.genderButtonActive
-              ]}
-              onPress={() => setProfile({ ...profile, gender: gender.key })}
-            >
-              <Text style={[
-                styles.genderButtonText,
-                profile.gender === gender.key && styles.genderButtonTextActive
-              ]}>
-                {gender.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+        <View style={styles.genderOptionsContainer}>
+          {[
+            { key: 'male' as const, icon: iconMap.men },
+            { key: 'female' as const, icon: iconMap.women },
+          ].map((item) => {
+            const active = profile.gender === item.key;
+            return (
+              <TouchableOpacity
+                key={item.key}
+                style={[styles.genderOption, active && styles.genderOptionActive]}
+                onPress={() => setProfile({ ...profile, gender: item.key })}
+              >
+                {active ? (
+                  <SmartImage source={iconMap.done} style={styles.genderIndicatorIcon} />
+                ) : (
+                  <View style={styles.genderIndicator} />
+                )}
+                <SmartImage source={item.icon} style={styles.genderIcon} />
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
     </View>
@@ -328,7 +423,7 @@ export default function ProfileEditScreen() {
   const renderWorkDays = () => (
     <View style={styles.inputRow}>
       <View style={styles.iconContainer}>
-        <Image source={iconMap.calendar} style={styles.smallIcon} />
+        <SmartImage source={iconMap.calendar} style={styles.smallIcon} />
       </View>
       <View style={styles.inputContainer}>
         <View style={styles.workDaysContainer}>
@@ -366,7 +461,7 @@ export default function ProfileEditScreen() {
         {/* 氏名と写真 */}
         <View style={styles.inputRow}>
           <View style={styles.iconContainer}>
-            <Image source={iconMap.person} style={styles.smallIcon} />
+            <SmartImage source={iconMap.id_card} style={styles.smallIcon} />
           </View>
           <View style={styles.inputContainer}>
             <View style={styles.nameRow}>
@@ -388,7 +483,7 @@ export default function ProfileEditScreen() {
                 style={styles.imageIconButton}
                 onPress={() => pickImage('profile')}
               >
-                <Image source={iconMap.person} style={styles.imageIcon} />
+                <SmartImage source={iconMap.person} style={styles.imageIcon} />
               </TouchableOpacity>
             </View>
             {errors.fullName && (
@@ -406,7 +501,7 @@ export default function ProfileEditScreen() {
           (value) => setProfile({ ...profile, age: parseInt(value) || 0 }),
           Array.from({ length: 100 }, (_, i) => ({ key: (i + 1).toString(), label: (i + 1).toString() })),
           t('selectAge'),
-          iconMap.person
+          iconMap.cake
         )}
 
         {renderPicker(
@@ -414,8 +509,8 @@ export default function ProfileEditScreen() {
           profile.nationality,
           (value) => setProfile({ ...profile, nationality: value }),
           NATIONALITIES.map(n => ({ key: n, label: n })),
-          '国籍を選択',
-          iconMap.flag
+          t('selectNationality'),
+          iconMap.globus
         )}
         
         {renderGenderSelection()}
@@ -426,8 +521,8 @@ export default function ProfileEditScreen() {
             ...profile, 
             homeStation: { ...profile.homeStation, stationName: value }
           }),
-          '自宅最寄り駅',
-          iconMap.train
+          t('homeStation'),
+          iconMap.home_train
         )}
         
         {renderPicker(
@@ -437,9 +532,9 @@ export default function ProfileEditScreen() {
             ...profile, 
             homeStation: { ...profile.homeStation, walkingMinutes: parseInt(value) || 0 }
           }),
-          Array.from({ length: 30 }, (_, i) => ({ key: (i + 1).toString(), label: `${i + 1}分` })),
-          '徒歩時間を選択',
-          iconMap.clock
+          Array.from({ length: 30 }, (_, i) => ({ key: (i + 1).toString(), label: t('minute', { minute: i + 1 }) })),
+          t('selectWalkingMinutes'),
+          iconMap.step
         )}
 
         {renderInput(
@@ -449,8 +544,8 @@ export default function ProfileEditScreen() {
             ...profile, 
             schoolStation: { ...profile.schoolStation, stationName: value }
           }),
-          '学校最寄り駅',
-          iconMap.train
+          t('schoolStation'),
+          iconMap.school_train
         )}
         
         {renderPicker(
@@ -460,9 +555,9 @@ export default function ProfileEditScreen() {
             ...profile, 
             schoolStation: { ...profile.schoolStation, walkingMinutes: parseInt(value) || 0 }
           }),
-          Array.from({ length: 30 }, (_, i) => ({ key: (i + 1).toString(), label: `${i + 1}分` })),
-          '徒歩時間を選択',
-          iconMap.clock
+          Array.from({ length: 30 }, (_, i) => ({ key: (i + 1).toString(), label: t('minute', { minute: i + 1 }) })),
+          t('selectWalkingMinutes'),
+          iconMap.step
         )}
         {renderInput(
           '',
@@ -474,8 +569,8 @@ export default function ProfileEditScreen() {
             });
             if (value.trim()) clearError('postalCode');
           },
-          '郵便番号（例：1000001 または 100000）',
-          iconMap.location,
+          t('postalCodeExample'),
+          iconMap.map,
           errors.postalCode
         )}
         
@@ -488,17 +583,17 @@ export default function ProfileEditScreen() {
             {isLoadingAddress ? (
               <ActivityIndicator color="#fff" size="small" />
             ) : (
-              <Text style={styles.autoFillButtonText}>住所自動入力</Text>
+              <Text style={styles.autoFillButtonText}>{t('autoFillAddress')}</Text>
             )}
           </TouchableOpacity>
-          <Text style={styles.autoFillHint}>郵便番号を入力後、ボタンを押すと住所が自動入力されます</Text>
+          <Text style={styles.autoFillHint}>{t('autoFillHint')}</Text>
           
           {fetchedAddress && (
             <View style={styles.fetchedAddressContainer}>
               <View style={styles.fetchedAddressHeader}>
-                <Text style={styles.fetchedAddressLabel}>取得された住所:</Text>
+                <Text style={styles.fetchedAddressLabel}>{t('fetchedAddress')}</Text>
                 <TouchableOpacity onPress={clearAddress} style={styles.clearButton}>
-                  <Text style={styles.clearButtonText}>クリア</Text>
+                  <Text style={styles.clearButtonText}>{t('clear')}</Text>
                 </TouchableOpacity>
               </View>
               <Text style={styles.fetchedAddressText}>{fetchedAddress}</Text>
@@ -514,8 +609,8 @@ export default function ProfileEditScreen() {
             address: { ...profile.address, prefecture: value }
           }),
           JAPANESE_PREFECTURES.map(p => ({ key: p, label: p })),
-          fetchedAddress ? '都道府県（自動入力済み）' : '都道府県を選択',
-          iconMap.location
+          fetchedAddress ? t('selectPrefectureAuto') : t('selectPrefecture'),
+          iconMap.map
         )}
 
         {renderInput(
@@ -525,8 +620,8 @@ export default function ProfileEditScreen() {
             ...profile, 
             address: { ...profile.address, city1: value }
           }),
-          fetchedAddress ? '市区町村1（自動入力済み）' : '市区町村1',
-          iconMap.location,
+          fetchedAddress ? t('selectCity1Auto') : t('selectCity1'),
+          iconMap.map,
           undefined,
           !!fetchedAddress
         )}
@@ -538,8 +633,8 @@ export default function ProfileEditScreen() {
             ...profile, 
             address: { ...profile.address, city2: value }
           }),
-          fetchedAddress ? '市区町村2（自動入力済み）' : '市区町村2',
-          iconMap.location,
+          fetchedAddress ? t('selectCity2Auto') : t('selectCity2'),
+          iconMap.map,
           undefined,
           !!fetchedAddress
         )}
@@ -551,8 +646,8 @@ export default function ProfileEditScreen() {
             ...profile, 
             address: { ...profile.address, streetAddress: value }
           }),
-          '番地・建物名',
-          iconMap.location
+          t('streetAddress'),
+          iconMap.home
         )}
         {renderInput(
           '',
@@ -561,7 +656,7 @@ export default function ProfileEditScreen() {
             setProfile({ ...profile, email: value });
             if (value.trim()) clearError('email');
           },
-          'メールアドレス',
+          t('email'),
           iconMap.email,
           errors.email
         )}
@@ -573,7 +668,7 @@ export default function ProfileEditScreen() {
             setProfile({ ...profile, phoneNumber: value });
             if (value.trim()) clearError('phoneNumber');
           },
-          '電話番号',
+          t('phone'),
           iconMap.phone,
           errors.phoneNumber
         )}
@@ -585,14 +680,14 @@ export default function ProfileEditScreen() {
             visaStatus: { ...profile.visaStatus, currentVisaType: value }
           }),
           VISA_TYPES.map(v => ({ key: v, label: v })),
-          'ビザの種類を選択',
-          iconMap.visa
+          t('selectVisaType'),
+          iconMap.id_card
         )}
 
         {/* ビザ写真 */}
         <View style={styles.inputRow}>
           <View style={styles.iconContainer}>
-            <Image source={iconMap.visa} style={styles.smallIcon} />
+            <SmartImage source={iconMap.id_card} style={styles.smallIcon} />
           </View>
           <View style={styles.inputContainer}>
             <TouchableOpacity 
@@ -600,7 +695,7 @@ export default function ProfileEditScreen() {
               onPress={() => pickImage('visa')}
             >
               <Text style={styles.imageButtonText}>
-                {profile.visaStatus.visaImage ? '写真を変更' : 'ビザ写真を選択'}
+                {profile.visaStatus.visaImage ? t('changePhoto') : t('selectVisaPhoto')}
               </Text>
             </TouchableOpacity>
             {profile.visaStatus.visaImage && (
@@ -614,7 +709,7 @@ export default function ProfileEditScreen() {
           profile.japaneseLevel,
           (value) => setProfile({ ...profile, japaneseLevel: value as any }),
           JAPANESE_LEVELS.map(l => ({ key: l, label: l })),
-          '日本語レベルを選択',
+          t('selectJapaneseLevel'),
           iconMap.language
         )}
 
@@ -625,16 +720,16 @@ export default function ProfileEditScreen() {
           profile.currentOccupation,
           (value) => setProfile({ ...profile, currentOccupation: value as any }),
           OCCUPATIONS,
-          '職業を選択',
-          iconMap.work
+          t('selectOccupation'),
+          iconMap.id_card
         )}
 
         {renderInput(
           '',
           profile.desiredJobType,
           (value) => setProfile({ ...profile, desiredJobType: value }),
-          '希望する職種',
-          iconMap.work
+          t('desiredJobType'),
+          iconMap.id_card
         )}
 
         <View style={styles.bottomButtons}>
@@ -646,7 +741,7 @@ export default function ProfileEditScreen() {
             {isGeneratingPDF ? (
               <ActivityIndicator color="#fff" size="small" />
             ) : (
-              <Text style={styles.confirmButtonText}>確認・ダウンロード</Text>
+              <Text style={styles.confirmButtonText}>{t('confirmAndDownload')}</Text>
             )}
           </TouchableOpacity>
           
@@ -654,12 +749,12 @@ export default function ProfileEditScreen() {
             style={styles.saveButton} 
             onPress={() => {
               if (validateForm()) {
-                Alert.alert('成功', 'プロフィールが保存されました');
+                Alert.alert(t('success'), t('profileSaved'));
                 router.back();
               }
             }}
           >
-            <Text style={styles.saveButtonText}>⬇️ 保存</Text>
+            <Text style={styles.saveButtonText}>{t('save')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -830,6 +925,44 @@ const styles = StyleSheet.create({
   },
   genderButtonTextActive: {
     color: '#fff',
+  },
+  genderOptionsContainer: {
+    flexDirection: 'row',
+    gap: 16,
+    alignItems: 'center',
+  },
+  genderOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    backgroundColor: '#fff',
+  },
+  genderOptionActive: {
+    borderColor: '#007AFF',
+  },
+  genderIndicator: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#ccc',
+    backgroundColor: '#fff',
+  },
+  genderIndicatorIcon: {
+    width: 20,
+    height: 20,
+    resizeMode: 'contain',
+    tintColor: '#007AFF',
+  },
+  genderIcon: {
+    width: 28,
+    height: 28,
+    resizeMode: 'contain',
   },
   workDaysContainer: {
     flexDirection: 'row',

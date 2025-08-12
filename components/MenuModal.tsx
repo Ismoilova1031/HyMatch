@@ -6,20 +6,15 @@ import {
   Modal,
   StyleSheet,
   Alert,
-  Image,
 } from 'react-native';
 import { Text as ThemedText, View as ThemedView } from '@/components/Themed';
 import Colors from '@/constants/Colors';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { iconMap } from '@/constants/iconMap';
+import SmartImage from '@/components/SmartImage';
 
-// Icon map from constants
-const iconMap = {
-  language: require('../assets/images/icons/language.png'),
-  close: require('../assets/images/icons/close.png'),
-  done: require('../assets/images/icons/done.png'),
-  profile: require('../assets/images/icons/company.png'), // Using company icon for profile
-};
+// using centralized iconMap
 
 interface MenuModalProps {
   visible: boolean;
@@ -74,7 +69,7 @@ export default function MenuModal({ visible, onClose }: MenuModalProps) {
         <View style={styles.topBar}>
           <Text style={styles.title}>{t('menu')}</Text>
           <TouchableOpacity onPress={onClose} activeOpacity={0.7}>
-            <Image source={iconMap.close} style={styles.icon} />
+            <SmartImage source={iconMap.close} style={styles.icon} />
           </TouchableOpacity>
         </View>
 
@@ -83,7 +78,7 @@ export default function MenuModal({ visible, onClose }: MenuModalProps) {
         {/* Language Selection */}
         <TouchableOpacity style={styles.menuItem} onPress={handleLanguagePress} activeOpacity={0.7}>
           <View style={styles.circle}>
-            <Image source={iconMap.language} style={styles.menuIcon} />
+            <SmartImage source={iconMap.language} style={styles.menuIcon} />
           </View>
           <View style={styles.menuContent}>
             <ThemedText style={styles.menuText}>{t('languageSetting')}</ThemedText>
@@ -94,7 +89,7 @@ export default function MenuModal({ visible, onClose }: MenuModalProps) {
         {/* Profile */}
         <TouchableOpacity style={styles.menuItem} onPress={handleProfilePress} activeOpacity={0.7}>
           <View style={styles.circle}>
-            <Image source={iconMap.profile} style={styles.menuIcon} />
+            <SmartImage source={iconMap.company} style={styles.menuIcon} />
           </View>
           <View style={styles.menuContent}>
             <ThemedText style={styles.menuText}>{t('profile')}</ThemedText>

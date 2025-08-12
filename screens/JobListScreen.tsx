@@ -7,6 +7,7 @@ import {
   Alert,
 } from 'react-native';
 import { Text as ThemedText, View as ThemedView } from '@/components/Themed';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
 import JobListItem from '@/components/JobListItem';
 import JobFilterModal from '@/components/JobFilterModal';
@@ -28,6 +29,7 @@ interface JobListScreenProps {
 }
 
 export default function JobListScreen({ route, navigation }: JobListScreenProps) {
+  const insets = useSafeAreaInsets();
   const { type, jobs: initialJobs } = route.params;
   const [jobs, setJobs] = useState<JobData[]>(initialJobs);
   const [filteredJobs, setFilteredJobs] = useState<JobData[]>(initialJobs);
@@ -217,7 +219,7 @@ export default function JobListScreen({ route, navigation }: JobListScreenProps)
   );
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
       {renderHeader()}
       
       {filteredJobs.length === 0 ? (

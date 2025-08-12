@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, Image, Animated, Dimensions, PanResponder } from 'react-native';
+import { View, Text, StyleSheet, Animated, Dimensions, PanResponder } from 'react-native';
 import { ToastAndroid, Pressable, Modal, Linking } from 'react-native';
 import { iconMap } from '../constants/iconMap';
+import SmartImage from '../components/SmartImage';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = 0.25 * SCREEN_WIDTH;
@@ -211,7 +212,7 @@ export default function SwipeScreen() {
         {/* Qator 1 */}
         <View style={styles.row}>
           <Pressable onPress={() => handlePress('Kampaniya nomi!')}>
-            <Image source={iconMap.company} style={styles.icon} />
+            <SmartImage source={iconMap.company} style={styles.icon} />
           </Pressable>
           <Text style={styles.text}>{job.company}</Text>
         </View>
@@ -221,11 +222,11 @@ export default function SwipeScreen() {
         <View style={styles.rowSpaceBetween}>
           <View style={styles.row}>
             <Pressable onPress={() => handlePress('Ish turi!')}>
-              <Image source={iconMap.todo} style={styles.icon} />
+              <SmartImage source={iconMap.todo} style={styles.icon} />
             </Pressable>
             <Text> {job.jobTitle}</Text>
           </View>
-          <Image source={iconMap.policeman} style={styles.icon} />
+          <SmartImage source={iconMap.policeman} style={styles.icon} />
         </View>
         <View style={styles.separator} />
 
@@ -233,14 +234,14 @@ export default function SwipeScreen() {
         <View style={styles.rowSpaceBetween}>
           <View style={styles.row}>
             <Pressable onPress={() => handlePress('Maosh!')}>
-              <Image source={iconMap.coin} style={styles.icon} />
+              <SmartImage source={iconMap.coin} style={styles.icon} />
             </Pressable>
             <Text> {job.wage}</Text>
           </View>
           <View style={{ alignItems: 'flex-end' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Pressable onPress={() => handlePress('Yapon tili darajasi!')}>
-                <Image source={iconMap.language} style={styles.icon} />
+                <SmartImage source={iconMap.language} style={styles.icon} />
               </Pressable>
               <View style={{ alignItems: 'center', marginLeft: 8 }}>
                 <Text style={styles.japaneseLevelText}>{job.japaneseLevel}</Text>
@@ -261,13 +262,13 @@ export default function SwipeScreen() {
         <View style={styles.rowSpaceBetween}>
           <View style={styles.row}>
             <Pressable onPress={() => handlePress('Yurish vaqti!')}>
-              <Image source={iconMap.steps} style={styles.icon} />
+              <SmartImage source={iconMap.steps} style={styles.icon} />
             </Pressable>
             <Text> {job.commuteTime}</Text>
           </View>
           <View style={styles.row}>
             <Pressable onPress={() => handlePress('Vokzal!')}>
-              <Image source={iconMap.train} style={styles.icon} />
+              <SmartImage source={iconMap.train} style={styles.icon} />
             </Pressable>
             <Text> {job.station}</Text>
           </View>
@@ -277,7 +278,7 @@ export default function SwipeScreen() {
         {/* Qator 5 */}
         <View style={styles.row}>
           <Pressable onPress={() => handlePress('Ish kunlari!')}>
-            <Image source={iconMap.calendar} style={styles.icon} />
+            <SmartImage source={iconMap.calendar} style={styles.icon} />
           </Pressable>
           {Array.isArray(job.days) &&
             job.days.map((d, idx) => (
@@ -294,7 +295,7 @@ export default function SwipeScreen() {
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 6 }}>
           <Pressable onPress={() => handlePress('Ish vaqti!')}>
-            <Image source={iconMap.clock} style={{ width: 14, height: 14, marginRight: 6 }} />
+            <SmartImage source={iconMap.clock} style={{ width: 14, height: 14, marginRight: 6 }} />
           </Pressable>
           <Text>{job.shiftTime}</Text>
         </View>
@@ -303,13 +304,13 @@ export default function SwipeScreen() {
         {/* Qator 6 */}
         <View style={styles.row}>
           <Pressable onPress={() => handlePress('Ish belgilar!')}>
-            <Image source={iconMap.star} style={[styles.icon, { marginRight: 8 }]} />
+            <SmartImage source={iconMap.star} style={[styles.icon, { marginRight: 8 }]} />
           </Pressable>
           {Array.isArray(job.icons) &&
             job.icons
               .filter((iconName) => iconName !== 'star')
               .map((iconName, index) => (
-                <Image
+                <SmartImage
                   key={index}
                   source={iconMap[iconName as keyof typeof iconMap]}
                   style={[styles.icon, { marginRight: 8 }]}
@@ -334,10 +335,10 @@ export default function SwipeScreen() {
             <Text style={styles.modalText}>Kompaniya bilan bog'lanish</Text>
             <View style={{ flexDirection: 'row', gap: 16, marginVertical: 12 }}>
               <Pressable onPress={() => Linking.openURL('sms:05012345678')}>
-                <Image source={iconMap.todo} style={{ width: 40, height: 40 }} />
+                <SmartImage source={iconMap.email} style={{ width: 40, height: 40 }} />
               </Pressable>
               <Pressable onPress={() => Linking.openURL('tel:05012345678')}>
-                <Image source={iconMap.clock} style={{ width: 40, height: 40 }} />
+                <SmartImage source={iconMap.phone} style={{ width: 40, height: 40 }} />
               </Pressable>
             </View>
             <Pressable style={styles.button} onPress={() => setContactVisible(false)}>
@@ -404,7 +405,7 @@ export default function SwipeScreen() {
             }
           ]}
         >
-          <Image source={iconMap.refusal} style={styles.overlayImage} />
+          <SmartImage source={iconMap.refusal} style={styles.overlayImage} />
         </Animated.View>
       )}
       
@@ -425,13 +426,13 @@ export default function SwipeScreen() {
             }
           ]}
         >
-          <Image source={iconMap.choose} style={styles.overlayImage} />
+          <SmartImage source={iconMap.choose} style={styles.overlayImage} />
         </Animated.View>
       )}
 
       {/* Trash – chap burchakda 1/4 aylana */}
       <View style={styles.quarterCircleLeft}>
-        <Image
+        <SmartImage
           source={
             isSwipingLeft
               ? iconMap.trashFilled
@@ -442,7 +443,7 @@ export default function SwipeScreen() {
       </View>
 
       <View style={styles.quarterCircleRight}>
-        <Image
+        <SmartImage
           source={
             isSwipingRight
               ? iconMap.heartFilled

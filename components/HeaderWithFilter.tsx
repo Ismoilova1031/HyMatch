@@ -1,11 +1,12 @@
 // components/HeaderWithFilter.tsx
 
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Text as ThemedText, View as ThemedView } from '@/components/Themed';
 import Colors from '@/constants/Colors';
 import { iconMap } from '@/constants/iconMap';
 import { useTranslation } from 'react-i18next';
+import SmartImage from '@/components/SmartImage';
 
 interface HeaderWithFilterProps {
   title: string; // endi bu i18n kaliti bo'ladi
@@ -30,7 +31,7 @@ export default function HeaderWithFilter({ title, onFilterPress, onMenuPress }: 
       
       <View style={styles.rightSection}>
         <TouchableOpacity onPress={onFilterPress} style={styles.filterButton}>
-          <Image source={iconMap.sort} style={styles.filterIcon} />
+          <SmartImage source={iconMap.sort} style={styles.filterIcon} />
         </TouchableOpacity>
       </View>
     </ThemedView>
