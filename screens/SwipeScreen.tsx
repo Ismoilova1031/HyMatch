@@ -20,6 +20,7 @@ export default function SwipeScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isSwipingLeft, setIsSwipingLeft] = useState(false);
   const [isSwipingRight, setIsSwipingRight] = useState(false);
+  const [isAnimatingOut, setIsAnimatingOut] = useState(false);
 
   const translateX = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
@@ -87,6 +88,8 @@ export default function SwipeScreen() {
           // Hide overlays immediately upon confirming a swipe so they don't linger on next card
           setIsSwipingLeft(false);
           setIsSwipingRight(false);
+          // Instantly hide the outgoing top card to avoid content lingering over the next card
+          setIsAnimatingOut(true);
 
           Animated.parallel([
             Animated.timing(translateX, {
@@ -120,6 +123,7 @@ export default function SwipeScreen() {
             rotate.setValue(0);
             translateX.setOffset(0);
             translateY.setOffset(0);
+            setIsAnimatingOut(false);
           });
         } else {
           setIsSwipingLeft(false);
@@ -163,8 +167,9 @@ export default function SwipeScreen() {
             outputRange: ['-10deg', '0deg', '10deg']
           })}
         ],
-        zIndex: 3,
-        elevation: 12
+        zIndex: isAnimatingOut ? 1 : 3,
+        elevation: isAnimatingOut ? 0 : 12,
+        opacity: isAnimatingOut ? 0 : 1,
       };
     } else if (isSecond) {
       scale = 0.95;
