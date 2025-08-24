@@ -45,10 +45,10 @@ export default function ContactModal({ visible, onClose, job }: ContactModalProp
         // In Expo Go, show phone number for manual dialing
         Alert.alert(
           t('contactCompany'),
-          `SMS: ${job.company.phone}\n\n${t('cannotOpenSMS')}`,
+          `${t('sms')}: ${job.company.phone}\n\n${t('cannotOpenSMS')}`,
           [
             { text: t('cancel'), style: 'cancel' },
-            { text: 'OK', onPress: () => onClose() }
+            { text: t('ok'), onPress: () => onClose() }
           ]
         );
       }
@@ -56,10 +56,10 @@ export default function ContactModal({ visible, onClose, job }: ContactModalProp
       console.log('SMS error:', error);
       Alert.alert(
         t('contactCompany'),
-        `SMS: ${job.company.phone}\n\n${t('errorOpeningSMS')}`,
+        `${t('sms')}: ${job.company.phone}\n\n${t('errorOpeningSMS')}`,
         [
           { text: t('cancel'), style: 'cancel' },
-          { text: 'OK', onPress: () => onClose() }
+          { text: t('ok'), onPress: () => onClose() }
         ]
       );
     }
@@ -91,7 +91,7 @@ export default function ContactModal({ visible, onClose, job }: ContactModalProp
           `${t('phone')}: ${job.company.phone}\n\n${t('cannotMakeCall')}`,
           [
             { text: t('cancel'), style: 'cancel' },
-            { text: 'OK', onPress: () => onClose() }
+            { text: t('ok'), onPress: () => onClose() }
           ]
         );
       }
@@ -102,7 +102,7 @@ export default function ContactModal({ visible, onClose, job }: ContactModalProp
         `${t('phone')}: ${job.company.phone}\n\n${t('errorMakingCall')}`,
         [
           { text: t('cancel'), style: 'cancel' },
-          { text: 'OK', onPress: () => onClose() }
+          { text: t('ok'), onPress: () => onClose() }
         ]
       );
     }

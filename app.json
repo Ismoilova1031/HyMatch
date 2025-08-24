@@ -19,7 +19,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-         "backgroundColor": "#f9efe7"
+        "backgroundColor": "#f9efe7"
       },
       "edgeToEdgeEnabled": true,
       "permissions": [
@@ -27,7 +27,8 @@
         "READ_EXTERNAL_STORAGE",
         "MEDIA_WRITE",
         "MEDIA_READ"
-      ]
+      ],
+      "package": "com.isroil_qizi_1031.HyMatch"
     },
     "web": {
       "bundler": "metro",
@@ -39,6 +40,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "b2e1b86d-1964-438a-98fc-4b2fd8bc1994"
+      }
     }
   }
 }

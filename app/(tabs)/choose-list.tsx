@@ -1,35 +1,15 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
-import { useTranslation } from 'react-i18next'; // Qo'shildi
-
-// Mock jobs data
-const jobs = [
-  {
-    id: '1',
-    title: 'レストランスタッフ',
-    jobType: 'Resutoran',
-    wage: 1200,
-    japaneseLevel: 'N3',
-  },
-  {
-    id: '2',
-    title: 'コンビニスタッフ',
-    jobType: 'Konbini',
-    wage: 1100,
-    japaneseLevel: 'N4',
-  },
-  {
-    id: '3',
-    title: 'オフィスワーク',
-    jobType: 'Ofis',
-    wage: 1400,
-    japaneseLevel: 'N2',
-  },
-];
+import { useTranslation } from 'react-i18next';
+import { useJobs } from '@/context/JobsContext';
+import { JobData } from '@/types/job';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ListScreen() {
   const [selected, setSelected] = useState<string[]>([]);
-  const { t } = useTranslation(); // Qo'shildi
+  const { t } = useTranslation();
+  const { chosenJobs } = useJobs();
+  const insets = useSafeAreaInsets();
 
   const toggleSelect = (id: string) => {
     setSelected(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
@@ -42,18 +22,22 @@ export default function ListScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      {jobs.length === 0 ? (
+    <View style={[styles.container, { paddingTop: 70 + insets.top, paddingBottom: 70 + insets.bottom }] }>
+      {chosenJobs.length === 0 ? (
         <View style={styles.emptyBox}>
           <Text style={styles.emptyText}>{t('noJobs')}</Text>
         </View>
       ) : (
         <>
+          <Text style={{ paddingHorizontal: 16, marginBottom: 8, color: '#666' }}>{t('jobCount', { count: chosenJobs.length })}</Text>
           <FlatList
-            data={jobs}
+            data={chosenJobs}
             keyExtractor={item => item.id}
-            contentContainerStyle={{ paddingBottom: 80 }}
-            renderItem={({ item }) => (
+            contentContainerStyle={{ paddingBottom: 90 }}
+            showsVerticalScrollIndicator={false}
+            extraData={{ selected, chosenLen: chosenJobs.length }}
+            style={{ flex: 1 }}
+            renderItem={({ item }: { item: JobData }) => (
               <View style={styles.jobBox}>
                 <TouchableOpacity onPress={() => toggleSelect(item.id)} style={styles.checkbox}>
                   {selected.includes(item.id) && <View style={styles.checkedBox} />}
@@ -70,7 +54,7 @@ export default function ListScreen() {
                     <Image source={require('../../assets/images/icons/policeman.png')} style={styles.rowIcon} />
                     <Text style={styles.japaneseLevel}>{item.japaneseLevel}</Text>
                     <View style={{ flex: 1 }} />
-                    <Text style={styles.wage}>{item.wage}円</Text>
+                    <Text style={styles.wage}>{`${item.salary.currency}${item.salary.min}〜${item.salary.max}`}</Text>
                   </View>
                 </View>
               </View>

@@ -23,7 +23,7 @@ interface MenuModalProps {
 
 export default function MenuModal({ visible, onClose }: MenuModalProps) {
   const { t, i18n } = useTranslation();
-  const [selectedLanguage, setSelectedLanguage] = useState<string>(t('japanese'));
+  const [selectedLanguage, setSelectedLanguage] = useState<'ja' | 'en' | 'uz'>('ja');
 
   const handleLanguagePress = () => {
     Alert.alert(
@@ -33,22 +33,22 @@ export default function MenuModal({ visible, onClose }: MenuModalProps) {
         { 
           text: t('japanese'), 
           onPress: () => {
-            setSelectedLanguage(t('japanese'));
-            i18n.changeLanguage('ja');
+            setSelectedLanguage('ja');
+            setTimeout(() => i18n.changeLanguage('ja'), 0);
           }
         },
         { 
           text: t('english'), 
           onPress: () => {
-            setSelectedLanguage(t('english'));
-            i18n.changeLanguage('en');
+            setSelectedLanguage('en');
+            setTimeout(() => i18n.changeLanguage('en'), 0);
           }
         },
         { 
           text: t('uzbek'), 
           onPress: () => {
-            setSelectedLanguage(t('uzbek'));
-            i18n.changeLanguage('uz');
+            setSelectedLanguage('uz');
+            setTimeout(() => i18n.changeLanguage('uz'), 0);
           }
         },
         { text: t('cancel'), style: 'cancel' },
@@ -82,7 +82,9 @@ export default function MenuModal({ visible, onClose }: MenuModalProps) {
           </View>
           <View style={styles.menuContent}>
             <ThemedText style={styles.menuText}>{t('languageSetting')}</ThemedText>
-            <Text style={styles.selectedValue}>{selectedLanguage}</Text>
+            <Text style={styles.selectedValue}>
+              {t(selectedLanguage === 'ja' ? 'japanese' : selectedLanguage === 'en' ? 'english' : 'uzbek')}
+            </Text>
           </View>
         </TouchableOpacity>
         

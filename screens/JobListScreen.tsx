@@ -14,8 +14,6 @@ import JobFilterModal from '@/components/JobFilterModal';
 import { JobData, JobFilter, JobSort } from '@/types/job';
 import { sampleJobs } from '@/data/sampleJobs';
 import i18n from '@/i18n';
-// Masalan, tilni o‘zgartirish uchun:
-i18n.changeLanguage('en'); // yoki 'uz', 'ja'
 import { useTranslation } from 'react-i18next';
 
 interface JobListScreenProps {

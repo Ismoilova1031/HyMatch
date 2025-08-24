@@ -1,8 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Animated, Dimensions, PanResponder } from 'react-native';
 import { ToastAndroid, Pressable, Modal, Linking } from 'react-native';
 import { iconMap } from '../constants/iconMap';
 import SmartImage from '../components/SmartImage';
+import { useJobs } from '@/context/JobsContext';
+import { JobData, WORK_DAY_LABELS } from '@/types/job';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = 0.25 * SCREEN_WIDTH;
@@ -10,34 +12,8 @@ const SWIPE_DOWN_THRESHOLD = 0.12 * Dimensions.get('window').height;
 const CARD_WIDTH = SCREEN_WIDTH - 40;
 const CARD_HEIGHT = 580;
 
-interface Job {
-  id: number;
-  company: string;
-  jobTitle: string;
-  wage: string;
-  japaneseLevel: string;
-  commuteTime: string;
-  station: string;
-  days: string[];
-  shiftTime: string;
-  icons: string[];
-}
-
-// Sample data (10 ta karta)
-const jobs: Job[] = Array.from({ length: 10 }, (_, i) => ({
-  id: i + 1,
-  company: `Company_${i + 1}`,
-  jobTitle: 'Delivery (bicycle)',
-  wage: '¥1,400〜¥1,700',
-  japaneseLevel: 'N3',
-  commuteTime: '10 min',
-  station: 'Ikebukuro',
-  days: ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'],
-  shiftTime: '10:00 ~ 16:00',
-  icons: ['deadline', 'chine', 'trainCoin'],
-}));
-
 export default function SwipeScreen() {
+  const { allJobs: jobs, markChosen, markRefused } = useJobs();
   const [modalVisible, setModalVisible] = useState(false);
   const [contactVisible, setContactVisible] = useState(false);
   const [selectedText, setSelectedText] = useState('');
@@ -108,6 +84,9 @@ export default function SwipeScreen() {
         if (Math.abs(gestureState.dx) > SWIPE_THRESHOLD) {
           const isRight = gestureState.dx > 0;
           const toValue = isRight ? SCREEN_WIDTH * 1.5 : -SCREEN_WIDTH * 1.5;
+          // Hide overlays immediately upon confirming a swipe so they don't linger on next card
+          setIsSwipingLeft(false);
+          setIsSwipingRight(false);
 
           Animated.parallel([
             Animated.timing(translateX, {
@@ -126,6 +105,12 @@ export default function SwipeScreen() {
               useNativeDriver: false,
             }),
           ]).start(() => {
+            // Mark the current job as chosen/refused in global store
+            const currentJob = jobs[currentIndex];
+            if (currentJob) {
+              if (isRight) markChosen(currentJob.id);
+              else markRefused(currentJob.id);
+            }
             if (currentIndex < jobs.length - 1) {
               setCurrentIndex((prev) => prev + 1);
             }
@@ -135,8 +120,6 @@ export default function SwipeScreen() {
             rotate.setValue(0);
             translateX.setOffset(0);
             translateY.setOffset(0);
-            setIsSwipingLeft(false);
-            setIsSwipingRight(false);
           });
         } else {
           setIsSwipingLeft(false);
@@ -151,7 +134,13 @@ export default function SwipeScreen() {
     })
   ).current;
 
-  const renderCard = (job: Job, index: number) => {
+  // Ensure overlays never carry over to the next card
+  useEffect(() => {
+    setIsSwipingLeft(false);
+    setIsSwipingRight(false);
+  }, [currentIndex]);
+
+  const renderCard = (job: JobData, index: number) => {
     // Faqat hozirgi top karta va undan keyingi bitta kartani ko'rsatamiz
     if (index < currentIndex) return null; // Olib tashlangan kartalar umuman ko'rinmasin
     if (index > currentIndex + 1) return null; // 3-chi va undan keyingi kartalar ko'rsatilmasin
@@ -214,7 +203,7 @@ export default function SwipeScreen() {
           <Pressable onPress={() => handlePress('Kampaniya nomi!')}>
             <SmartImage source={iconMap.company} style={styles.icon} />
           </Pressable>
-          <Text style={styles.text}>{job.company}</Text>
+          <Text style={styles.text}>{job.company.name}</Text>
         </View>
         <View style={styles.separator} />
 
@@ -224,7 +213,7 @@ export default function SwipeScreen() {
             <Pressable onPress={() => handlePress('Ish turi!')}>
               <SmartImage source={iconMap.todo} style={styles.icon} />
             </Pressable>
-            <Text> {job.jobTitle}</Text>
+            <Text> {job.title}</Text>
           </View>
           <SmartImage source={iconMap.policeman} style={styles.icon} />
         </View>
@@ -236,7 +225,9 @@ export default function SwipeScreen() {
             <Pressable onPress={() => handlePress('Maosh!')}>
               <SmartImage source={iconMap.coin} style={styles.icon} />
             </Pressable>
-            <Text> {job.wage}</Text>
+            <Text>
+              {`${job.salary.currency}${job.salary.min}〜${job.salary.max}`}
+            </Text>
           </View>
           <View style={{ alignItems: 'flex-end' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -264,13 +255,13 @@ export default function SwipeScreen() {
             <Pressable onPress={() => handlePress('Yurish vaqti!')}>
               <SmartImage source={iconMap.steps} style={styles.icon} />
             </Pressable>
-            <Text> {job.commuteTime}</Text>
+            <Text> {`${job.commuteTime.home} min`}</Text>
           </View>
           <View style={styles.row}>
             <Pressable onPress={() => handlePress('Vokzal!')}>
               <SmartImage source={iconMap.train} style={styles.icon} />
             </Pressable>
-            <Text> {job.station}</Text>
+            <Text> {job.company.location}</Text>
           </View>
         </View>
         <View style={styles.separator} />
@@ -280,8 +271,8 @@ export default function SwipeScreen() {
           <Pressable onPress={() => handlePress('Ish kunlari!')}>
             <SmartImage source={iconMap.calendar} style={styles.icon} />
           </Pressable>
-          {Array.isArray(job.days) &&
-            job.days.map((d, idx) => (
+          {Array.isArray(job.workDays) &&
+            job.workDays.map((d, idx) => (
               <View
                 key={d}
                 style={[
@@ -289,7 +280,7 @@ export default function SwipeScreen() {
                   { backgroundColor: idx < 4 ? 'orange' : '#ccc' },
                 ]}
               >
-                <Text style={{ fontSize: 10, color: '#fff' }}>{d}</Text>
+                <Text style={{ fontSize: 10, color: '#fff' }}>{WORK_DAY_LABELS[d]}</Text>
               </View>
             ))}
         </View>
@@ -297,7 +288,7 @@ export default function SwipeScreen() {
           <Pressable onPress={() => handlePress('Ish vaqti!')}>
             <SmartImage source={iconMap.clock} style={{ width: 14, height: 14, marginRight: 6 }} />
           </Pressable>
-          <Text>{job.shiftTime}</Text>
+          <Text>{'10:00 ~ 16:00'}</Text>
         </View>
         <View style={styles.separator} />
 
@@ -306,16 +297,13 @@ export default function SwipeScreen() {
           <Pressable onPress={() => handlePress('Ish belgilar!')}>
             <SmartImage source={iconMap.star} style={[styles.icon, { marginRight: 8 }]} />
           </Pressable>
-          {Array.isArray(job.icons) &&
-            job.icons
-              .filter((iconName) => iconName !== 'star')
-              .map((iconName, index) => (
-                <SmartImage
-                  key={index}
-                  source={iconMap[iconName as keyof typeof iconMap]}
-                  style={[styles.icon, { marginRight: 8 }]}
-                />
-              ))}
+          {['deadline', 'chine', 'trainCoin'].map((iconName, index) => (
+            <SmartImage
+              key={index}
+              source={iconMap[iconName as keyof typeof iconMap]}
+              style={[styles.icon, { marginRight: 8 }]}
+            />
+          ))}
         </View>
       </Animated.View>
     );

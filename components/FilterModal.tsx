@@ -439,7 +439,11 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply }) 
                               <SmartImage source={iconMap.done} style={{ width: 30, height: 30 }} />
                             )}
                           </View>
-                          <Text>{t(filterValueTranslationKey[item] || item)}</Text>
+                          <Text>{
+                            filterValueTranslationKey[item]
+                              ? t(filterValueTranslationKey[item], { defaultValue: item })
+                              : item
+                          }</Text>
                         </View>
                       </TouchableOpacity>
                     )}

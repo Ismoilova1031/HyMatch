@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Tabs } from 'expo-router';
 import { useSegments } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
 import Colors from '@/constants/Colors';
@@ -26,6 +27,7 @@ export default function TabLayout() {
   const segments = useSegments();
   const currentTab = segments[1] === undefined ? 'index' : segments[1];
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
 
   // 👉 Shu yerda sizning onApply funksiyangiz:
   const handleFilterApply = (
@@ -64,11 +66,12 @@ export default function TabLayout() {
             bottom: 0,
             left: 0,
             right: 0,
-            height: 100,
+            // Keep enough height so items are fully visible above system nav
+            height: 70 + Math.max(insets.bottom, 12),
             backgroundColor: '#fff',
             borderTopWidth: 1,
             borderTopColor: '#e0e0e0',
-            paddingBottom: 10,
+            paddingBottom: Math.max(insets.bottom, 12),
             paddingTop: 10,
           },
         }}
