@@ -45,14 +45,12 @@ export default function ListScreen() {
       ) : (
         <>
           {selected.length > 0 && (
-            <View style={[styles.headerBar, { marginBottom: 8 }]}>
-              <View style={styles.headerContent}>
-                <TouchableOpacity style={styles.headerApplyBtn} onPress={handleBulkApply}>
-                  <Text style={styles.headerApplyText}>
-                    {t('bulkApplyBtn', { count: selected.length })}
-                  </Text>
-                </TouchableOpacity>
-              </View>
+            <View style={[styles.headerContent, { marginBottom: 8 }]}>
+              <TouchableOpacity style={styles.headerApplyBtn} onPress={handleBulkApply}>
+                <Text style={styles.headerApplyText}>
+                  {t('bulkApplyBtn', { count: selected.length })}
+                </Text>
+              </TouchableOpacity>
             </View>
           )}
           <FlatList
