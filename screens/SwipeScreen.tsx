@@ -1,19 +1,31 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Animated, Dimensions, PanResponder } from 'react-native';
-import { ToastAndroid, Pressable, Modal, Linking } from 'react-native';
+import { Pressable, Modal, Linking } from 'react-native';
 import { iconMap } from '../constants/iconMap';
+import { JOB_TYPE_ICONS } from '@/types/job';
 import SmartImage from '../components/SmartImage';
 import { useJobs } from '@/context/JobsContext';
 import { JobData, WORK_DAY_LABELS } from '@/types/job';
+import { useTranslation } from 'react-i18next';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = 0.25 * SCREEN_WIDTH;
 const SWIPE_DOWN_THRESHOLD = 0.12 * Dimensions.get('window').height;
 const CARD_WIDTH = SCREEN_WIDTH - 40;
 const CARD_HEIGHT = 580;
+// Render order for days of week
+const ALL_DAYS: (keyof typeof WORK_DAY_LABELS)[] = [
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+  'saturday',
+  'sunday',
+];
 
 export default function SwipeScreen() {
-  const { allJobs: jobs, markChosen, markRefused } = useJobs();
+  const { filteredJobs: jobs, markChosen, markRefused } = useJobs();
   const [modalVisible, setModalVisible] = useState(false);
   const [contactVisible, setContactVisible] = useState(false);
   const [selectedText, setSelectedText] = useState('');
@@ -21,10 +33,15 @@ export default function SwipeScreen() {
   const [isSwipingLeft, setIsSwipingLeft] = useState(false);
   const [isSwipingRight, setIsSwipingRight] = useState(false);
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
+  const { t } = useTranslation();
 
   const translateX = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
   const rotate = useRef(new Animated.Value(0)).current;
+
+  // Refs to ensure latest values in pan handlers
+  const currentIndexRef = useRef(0);
+  const jobsRef = useRef<JobData[]>(jobs);
 
   const handlePress = (text: string) => {
     setSelectedText(text);
@@ -33,27 +50,25 @@ export default function SwipeScreen() {
 
   const panResponder = useRef(
     PanResponder.create({
-      // Only start handling after a meaningful move so taps go to children
       onStartShouldSetPanResponder: () => false,
       onMoveShouldSetPanResponder: (_evt, gestureState) =>
         Math.abs(gestureState.dx) > 5 || Math.abs(gestureState.dy) > 5,
+      onStartShouldSetPanResponderCapture: () => false,
+      onMoveShouldSetPanResponderCapture: (_evt, gestureState) =>
+        Math.abs(gestureState.dx) > 5 || Math.abs(gestureState.dy) > 5,
+      onPanResponderTerminationRequest: () => false,
       onPanResponderGrant: () => {
-        // Reset offset when starting new gesture
         translateX.setOffset(0);
         translateY.setOffset(0);
-        // Also reset the current values to ensure clean gesture start
         translateX.setValue(0);
         translateY.setValue(0);
         rotate.setValue(0);
-        // Reset swipe direction flags
         setIsSwipingLeft(false);
         setIsSwipingRight(false);
       },
       onPanResponderMove: (evt, gestureState) => {
         translateX.setValue(gestureState.dx);
         translateY.setValue(gestureState.dy);
-        
-        // Swipe yo'nalishiga qarab overlay ko'rsatish
         if (gestureState.dx < -10) {
           setIsSwipingLeft(true);
           setIsSwipingRight(false);
@@ -66,10 +81,14 @@ export default function SwipeScreen() {
         }
       },
       onPanResponderRelease: (evt, gestureState) => {
-        // Down swipe => open contact modal (phone/SMS)
+        const idx = currentIndexRef.current;
+        const job = jobsRef.current[idx];
+        if (!job) return;
+        console.log("[Swipe] release => idx:", idx, "job.id:", job.id, "dx:", gestureState.dx, "dy:", gestureState.dy, "vx:", gestureState.vx, "vy:", gestureState.vy);
         if (
-          gestureState.dy > SWIPE_DOWN_THRESHOLD &&
-          Math.abs(gestureState.dx) < SWIPE_THRESHOLD / 2
+          Math.abs(gestureState.dy) > SWIPE_DOWN_THRESHOLD &&
+          Math.abs(gestureState.dy) > Math.abs(gestureState.dx) &&
+          gestureState.dy > 0
         ) {
           setContactVisible(true);
           Animated.parallel([
@@ -77,77 +96,77 @@ export default function SwipeScreen() {
             Animated.spring(translateY, { toValue: 0, useNativeDriver: false }),
             Animated.spring(rotate, { toValue: 0, useNativeDriver: false }),
           ]).start();
-          setIsSwipingLeft(false);
-          setIsSwipingRight(false);
           return;
         }
 
+        // Left/Right swipe to refuse/choose
         if (Math.abs(gestureState.dx) > SWIPE_THRESHOLD) {
           const isRight = gestureState.dx > 0;
           const toValue = isRight ? SCREEN_WIDTH * 1.5 : -SCREEN_WIDTH * 1.5;
-          // Hide overlays immediately upon confirming a swipe so they don't linger on next card
+
           setIsSwipingLeft(false);
           setIsSwipingRight(false);
-          // Instantly hide the outgoing top card to avoid content lingering over the next card
           setIsAnimatingOut(true);
 
           Animated.parallel([
-            Animated.timing(translateX, {
-              toValue,
-              duration: 200,
-              useNativeDriver: false,
-            }),
-            Animated.timing(translateY, {
-              toValue: gestureState.dy,
-              duration: 200,
-              useNativeDriver: false,
-            }),
-            Animated.timing(rotate, {
-              toValue: isRight ? 1 : -1,
-              duration: 200,
-              useNativeDriver: false,
-            }),
+            Animated.timing(translateX, { toValue, duration: 200, useNativeDriver: false }),
+            Animated.timing(translateY, { toValue: gestureState.dy, duration: 200, useNativeDriver: false }),
+            Animated.timing(rotate, { toValue: isRight ? 1 : -1, duration: 200, useNativeDriver: false }),
           ]).start(() => {
-            // Mark the current job as chosen/refused in global store
-            const currentJob = jobs[currentIndex];
-            if (currentJob) {
-              if (isRight) markChosen(currentJob.id);
-              else markRefused(currentJob.id);
+            if (isRight) markChosen(String(job.id));
+            else markRefused(String(job.id));
+
+            const len = jobsRef.current.length;
+            if (idx < len - 1) {
+              setCurrentIndex(prev => prev + 1);
+            } else {
+              // reached end of jobs
             }
-            if (currentIndex < jobs.length - 1) {
-              setCurrentIndex((prev) => prev + 1);
-            }
-            // Keyingi karta uchun animatsiyalarni tozalash
+
             translateX.setValue(0);
             translateY.setValue(0);
             rotate.setValue(0);
-            translateX.setOffset(0);
-            translateY.setOffset(0);
             setIsAnimatingOut(false);
           });
         } else {
-          setIsSwipingLeft(false);
-          setIsSwipingRight(false);
           Animated.parallel([
             Animated.spring(translateX, { toValue: 0, useNativeDriver: false }),
             Animated.spring(translateY, { toValue: 0, useNativeDriver: false }),
             Animated.spring(rotate, { toValue: 0, useNativeDriver: false }),
           ]).start();
         }
-      },
+      }
+      ,
     })
   ).current;
 
-  // Ensure overlays never carry over to the next card
   useEffect(() => {
     setIsSwipingLeft(false);
     setIsSwipingRight(false);
   }, [currentIndex]);
 
+  useEffect(() => {
+    console.log('[Swipe] jobs.length changed =>', jobs.length, 'reset currentIndex to 0');
+    setCurrentIndex(0);
+    translateX.setValue(0);
+    translateY.setValue(0);
+    rotate.setValue(0);
+  }, [jobs.length]);  
+
+  useEffect(() => {
+    console.log('[Swipe] currentIndex changed =>', currentIndex);
+  }, [currentIndex]);
+
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
+  useEffect(() => {
+    jobsRef.current = jobs;
+  }, [jobs]);
+
   const renderCard = (job: JobData, index: number) => {
-    // Faqat hozirgi top karta va undan keyingi bitta kartani ko'rsatamiz
-    if (index < currentIndex) return null; // Olib tashlangan kartalar umuman ko'rinmasin
-    if (index > currentIndex + 1) return null; // 3-chi va undan keyingi kartalar ko'rsatilmasin
+    if (index < currentIndex) return null;
+    if (index > currentIndex + 1) return null;
 
     const isFirst = index === currentIndex;
     const isSecond = index === currentIndex + 1;
@@ -174,7 +193,6 @@ export default function SwipeScreen() {
     } else if (isSecond) {
       scale = 0.95;
       cardStyle = {
-        // Slightly smaller (positional offset applied below via absolute top/left)
         transform: [{ scale }],
         zIndex: 2,
         elevation: 8
@@ -196,38 +214,38 @@ export default function SwipeScreen() {
           cardStyle,
           {
             position: 'absolute',
-            top: (index - currentIndex) * 8, // Back cards sit slightly lower
-            left: (index - currentIndex) * 5, // and slightly to the right
+            top: (index - currentIndex) * 8,
+            left: (index - currentIndex) * 5,
           }
         ]}
-        // Faqat ustki karta touch olsin
         pointerEvents={isFirst ? 'auto' : 'none'}
+        {...(isFirst ? panResponder.panHandlers : {})}
       >
-        {/* Qator 1 */}
+        {/* Row 1 */}
         <View style={styles.row}>
-          <Pressable onPress={() => handlePress('Kampaniya nomi!')}>
+          <Pressable onPress={() => handlePress(t('companyName'))}>
             <SmartImage source={iconMap.company} style={styles.icon} />
           </Pressable>
           <Text style={styles.text}>{job.company.name}</Text>
         </View>
         <View style={styles.separator} />
 
-        {/* Qator 2 */}
+        {/* Row 2 */}
         <View style={styles.rowSpaceBetween}>
           <View style={styles.row}>
-            <Pressable onPress={() => handlePress('Ish turi!')}>
+            <Pressable onPress={() => handlePress(t('jobType'))}>
               <SmartImage source={iconMap.todo} style={styles.icon} />
             </Pressable>
             <Text> {job.title}</Text>
           </View>
-          <SmartImage source={iconMap.policeman} style={styles.icon} />
+          <Text style={styles.jobTypeIcon}>{JOB_TYPE_ICONS[job.jobType]}</Text>
         </View>
         <View style={styles.separator} />
 
-        {/* Qator 3 */}
+        {/* Row 3 */}
         <View style={styles.rowSpaceBetween}>
           <View style={styles.row}>
-            <Pressable onPress={() => handlePress('Maosh!')}>
+            <Pressable onPress={() => handlePress(t('wage'))}>
               <SmartImage source={iconMap.coin} style={styles.icon} />
             </Pressable>
             <Text>
@@ -236,17 +254,23 @@ export default function SwipeScreen() {
           </View>
           <View style={{ alignItems: 'flex-end' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Pressable onPress={() => handlePress('Yapon tili darajasi!')}>
+              <Pressable onPress={() => handlePress(t('japaneseLevel'))}>
                 <SmartImage source={iconMap.language} style={styles.icon} />
               </Pressable>
               <View style={{ alignItems: 'center', marginLeft: 8 }}>
                 <Text style={styles.japaneseLevelText}>{job.japaneseLevel}</Text>
                 <View style={styles.levelDots}>
-                  <Text style={styles.dot}>•</Text>
-                  <Text style={styles.dot}>•</Text>
-                  <Text style={styles.activeDot}>•</Text>
-                  <Text style={styles.dot}>•</Text>
-                  <Text style={styles.dot}>•</Text>
+                  {[1, 2, 3, 4, 5].map((level) => {
+                    const levelNumber = parseInt(job.japaneseLevel.replace('N', ''));
+                    const isActive = level === (6 - levelNumber); // N5 = 1, N4 = 2, ..., N1 = 5
+                    return (
+                      <Text 
+                        key={level} 
+                        style={isActive ? styles.activeDot : styles.dot}>
+                        •
+                      </Text>
+                    );
+                  })}
                 </View>
               </View>
             </View>
@@ -254,16 +278,16 @@ export default function SwipeScreen() {
         </View>
         <View style={styles.separator} />
 
-        {/* Qator 4 */}
+        {/* Row 4 */}
         <View style={styles.rowSpaceBetween}>
           <View style={styles.row}>
-            <Pressable onPress={() => handlePress('Yurish vaqti!')}>
+            <Pressable onPress={() => handlePress(t('commute'))}>
               <SmartImage source={iconMap.steps} style={styles.icon} />
             </Pressable>
             <Text> {`${job.commuteTime.home} min`}</Text>
           </View>
           <View style={styles.row}>
-            <Pressable onPress={() => handlePress('Vokzal!')}>
+            <Pressable onPress={() => handlePress(t('station'))}>
               <SmartImage source={iconMap.train} style={styles.icon} />
             </Pressable>
             <Text> {job.company.location}</Text>
@@ -271,35 +295,37 @@ export default function SwipeScreen() {
         </View>
         <View style={styles.separator} />
 
-        {/* Qator 5 */}
+        {/* Row 5 */}
         <View style={styles.row}>
-          <Pressable onPress={() => handlePress('Ish kunlari!')}>
+          <Pressable onPress={() => handlePress(t('workDays'))}>
             <SmartImage source={iconMap.calendar} style={styles.icon} />
           </Pressable>
-          {Array.isArray(job.workDays) &&
-            job.workDays.map((d, idx) => (
+          {ALL_DAYS.map((d) => {
+            const isWorking = Array.isArray(job.workDays) && job.workDays.includes(d as any);
+            return (
               <View
                 key={d}
                 style={[
                   styles.dayCircle,
-                  { backgroundColor: idx < 4 ? 'orange' : '#ccc' },
+                  { backgroundColor: isWorking ? 'orange' : '#ccc' },
                 ]}
               >
                 <Text style={{ fontSize: 10, color: '#fff' }}>{WORK_DAY_LABELS[d]}</Text>
               </View>
-            ))}
+            );
+          })}
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 6 }}>
-          <Pressable onPress={() => handlePress('Ish vaqti!')}>
+          <Pressable onPress={() => handlePress(t('shiftTime'))}>
             <SmartImage source={iconMap.clock} style={{ width: 14, height: 14, marginRight: 6 }} />
           </Pressable>
           <Text>{'10:00 ~ 16:00'}</Text>
         </View>
         <View style={styles.separator} />
 
-        {/* Qator 6 */}
+        {/* Row 6 */}
         <View style={styles.row}>
-          <Pressable onPress={() => handlePress('Ish belgilar!')}>
+          <Pressable onPress={() => handlePress(t('icons'))}>
             <SmartImage source={iconMap.star} style={[styles.icon, { marginRight: 8 }]} />
           </Pressable>
           {['deadline', 'chine', 'trainCoin'].map((iconName, index) => (
@@ -316,7 +342,7 @@ export default function SwipeScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Contact modal (down swipe) */}
+      {/* Contact modal */}
       <Modal
         transparent={true}
         animationType="fade"
@@ -325,7 +351,7 @@ export default function SwipeScreen() {
       >
         <View style={styles.modalBackground}>
           <View style={styles.modalBox}>
-            <Text style={styles.modalText}>Kompaniya bilan bog'lanish</Text>
+            <Text style={styles.modalText}>{t('contactCompany')}</Text>
             <View style={{ flexDirection: 'row', gap: 16, marginVertical: 12 }}>
               <Pressable onPress={() => Linking.openURL('sms:05012345678')}>
                 <SmartImage source={iconMap.email} style={{ width: 40, height: 40 }} />
@@ -335,7 +361,7 @@ export default function SwipeScreen() {
               </Pressable>
             </View>
             <Pressable style={styles.button} onPress={() => setContactVisible(false)}>
-              <Text style={styles.buttonText}>Yopish</Text>
+              <Text style={styles.buttonText}>{t('close')}</Text>
             </Pressable>
           </View>
         </View>
@@ -350,7 +376,7 @@ export default function SwipeScreen() {
           <View style={styles.modalBox}>
             <Text style={styles.modalText}>{selectedText}</Text>
             <Pressable style={styles.button} onPress={() => setModalVisible(false)}>
-              <Text style={styles.buttonText}>Yopish</Text>
+              <Text style={styles.buttonText}>{t('close')}</Text>
             </Pressable>
           </View>
         </View>
@@ -361,30 +387,12 @@ export default function SwipeScreen() {
         {jobs.map((job, index) => renderCard(job, index))}
       </View>
 
-      {/* Dynamic gesture overlay: har doim hozirgi top card uchun */}
-      {currentIndex < jobs.length && (
-        <Animated.View
-          key={`gesture-${currentIndex}`} // Key qo'shib, har yangi top card uchun yangi overlay
-          pointerEvents="auto"
-          style={[
-            styles.gestureOverlay,
-            {
-              // Overlay hozirgi top card hududi bilan bir xil joyda
-              top: 100 + (0 * 8), // Top card har doim 0-offset
-              left: (SCREEN_WIDTH - CARD_WIDTH) / 2 + (0 * 5), // Top card har doim 0-offset
-              width: CARD_WIDTH,
-              height: CARD_HEIGHT,
-            },
-          ]}
-          {...panResponder.panHandlers}
-        />
-      )}
-
-      {/* Overlay Labels - Now positioned relative to the card and move with it */}
+      {/* Gesture overlay removed; panHandlers are attached to the top card itself */}
+      {/* Overlay Labels */}
       {isSwipingLeft && (
         <Animated.View 
           style={[
-            styles.overlayLabelRight, // Changed to overlayLabelRight for top-right corner
+            styles.overlayLabelRight,
             {
               transform: [
                 { translateX: translateX },
@@ -405,7 +413,7 @@ export default function SwipeScreen() {
       {isSwipingRight && (
         <Animated.View 
           style={[
-            styles.overlayLabelLeft, // Changed to overlayLabelLeft for top-left corner
+            styles.overlayLabelLeft,
             {
               transform: [
                 { translateX: translateX },
@@ -423,7 +431,7 @@ export default function SwipeScreen() {
         </Animated.View>
       )}
 
-      {/* Trash – chap burchakda 1/4 aylana */}
+      {/* Trash */}
       <View style={styles.quarterCircleLeft}>
         <SmartImage
           source={
@@ -450,6 +458,10 @@ export default function SwipeScreen() {
 }
 
 const styles = StyleSheet.create({
+  jobTypeIcon: {
+    fontSize: 30,
+    marginLeft: 6,
+  },
   quarterCircleLeft: {
     position: 'absolute',
     bottom: 100, // TabBar ustidan biroz yuqorida
@@ -578,15 +590,15 @@ const styles = StyleSheet.create({
   },
 
   dot: {
-    fontSize: 24, // 🔁 biroz kattaroq
+    fontSize: 20, 
     color: '#bbb',
     marginHorizontal: 2,
   },
-
+  
   activeDot: {
-    fontSize: 24, // 🔁 biroz kattaroq
+    fontSize: 32, 
     color: 'green',
-    marginHorizontal: 2,
+    lineHeight: 30,
   },
   overlayImage: {
     width: 140,

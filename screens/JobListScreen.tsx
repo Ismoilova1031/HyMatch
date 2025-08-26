@@ -15,12 +15,13 @@ import { JobData, JobFilter, JobSort } from '@/types/job';
 import { sampleJobs } from '@/data/sampleJobs';
 import i18n from '@/i18n';
 import { useTranslation } from 'react-i18next';
+import { useJobs } from '@/context/JobsContext';
 
 interface JobListScreenProps {
-  route: {
-    params: {
-      type: 'choose' | 'refusal';
-      jobs: JobData[];
+  route?: {
+    params?: {
+      type?: 'choose' | 'refusal';
+      jobs?: JobData[];
     };
   };
   navigation: any;
@@ -28,7 +29,9 @@ interface JobListScreenProps {
 
 export default function JobListScreen({ route, navigation }: JobListScreenProps) {
   const insets = useSafeAreaInsets();
-  const { type, jobs: initialJobs } = route.params;
+  const { chosenJobs } = useJobs();
+  const type: 'choose' = 'choose';
+  const initialJobs: JobData[] = route?.params?.jobs ?? chosenJobs;
   const [jobs, setJobs] = useState<JobData[]>(initialJobs);
   const [filteredJobs, setFilteredJobs] = useState<JobData[]>(initialJobs);
   const [selectedJobs, setSelectedJobs] = useState<string[]>([]);

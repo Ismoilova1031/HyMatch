@@ -23,7 +23,17 @@ interface MenuModalProps {
 
 export default function MenuModal({ visible, onClose }: MenuModalProps) {
   const { t, i18n } = useTranslation();
-  const [selectedLanguage, setSelectedLanguage] = useState<'ja' | 'en' | 'uz'>('ja');
+  const getLang = () => (['ja', 'en', 'uz'].includes(i18n.language) ? (i18n.language as 'ja' | 'en' | 'uz') : 'uz');
+  const [selectedLanguage, setSelectedLanguage] = useState<'ja' | 'en' | 'uz'>(getLang());
+  React.useEffect(() => {
+    const handler = (lng: string) => {
+      if (['ja', 'en', 'uz'].includes(lng)) setSelectedLanguage(lng as 'ja' | 'en' | 'uz');
+    };
+    i18n.on('languageChanged', handler);
+    return () => {
+      i18n.off('languageChanged', handler);
+    };
+  }, [i18n]);
 
   const handleLanguagePress = () => {
     Alert.alert(

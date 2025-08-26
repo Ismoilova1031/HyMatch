@@ -456,6 +456,10 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply }) 
             </Modal>
           )
         ))}
+        {/* Apply button to commit filter/sort selections */}
+        <Pressable onPress={handleApply} style={styles.applyButton}>
+          <Text style={{ color: '#fff' }}>{t('apply')}</Text>
+        </Pressable>
       </View>
     </View>
   );

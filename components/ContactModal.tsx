@@ -23,7 +23,6 @@ export default function ContactModal({ visible, onClose, job }: ContactModalProp
   const { t } = useTranslation();
 
   const handleSMS = async () => {
-    console.log('SMS button pressed');
     if (!job?.company.phone) {
       Alert.alert(t('error'), t('phoneNumberNotAvailable'));
       return;
@@ -31,18 +30,11 @@ export default function ContactModal({ visible, onClose, job }: ContactModalProp
 
     try {
       const smsUrl = `sms:${job.company.phone}`;
-      console.log('SMS URL:', smsUrl);
-      
       const canOpen = await Linking.canOpenURL(smsUrl);
-      console.log('Can open SMS URL:', canOpen);
-      
       if (canOpen) {
-        console.log('Opening SMS app...');
         await Linking.openURL(smsUrl);
         onClose();
       } else {
-        console.log('Cannot open SMS URL');
-        // In Expo Go, show phone number for manual dialing
         Alert.alert(
           t('contactCompany'),
           `${t('sms')}: ${job.company.phone}\n\n${t('cannotOpenSMS')}`,
@@ -53,7 +45,6 @@ export default function ContactModal({ visible, onClose, job }: ContactModalProp
         );
       }
     } catch (error) {
-      console.log('SMS error:', error);
       Alert.alert(
         t('contactCompany'),
         `${t('sms')}: ${job.company.phone}\n\n${t('errorOpeningSMS')}`,
@@ -66,7 +57,6 @@ export default function ContactModal({ visible, onClose, job }: ContactModalProp
   };
 
   const handleCall = async () => {
-    console.log('Phone button pressed');
     if (!job?.company.phone) {
       Alert.alert(t('error'), t('phoneNumberNotAvailable'));
       return;
@@ -74,18 +64,11 @@ export default function ContactModal({ visible, onClose, job }: ContactModalProp
 
     try {
       const phoneUrl = `tel:${job.company.phone}`;
-      console.log('Phone URL:', phoneUrl);
-      
       const canOpen = await Linking.canOpenURL(phoneUrl);
-      console.log('Can open phone URL:', canOpen);
-      
       if (canOpen) {
-        console.log('Opening phone app...');
         await Linking.openURL(phoneUrl);
         onClose();
       } else {
-        console.log('Cannot open phone URL');
-        // In Expo Go, show phone number for manual dialing
         Alert.alert(
           t('contactCompany'),
           `${t('phone')}: ${job.company.phone}\n\n${t('cannotMakeCall')}`,
@@ -96,7 +79,6 @@ export default function ContactModal({ visible, onClose, job }: ContactModalProp
         );
       }
     } catch (error) {
-      console.log('Phone error:', error);
       Alert.alert(
         t('contactCompany'),
         `${t('phone')}: ${job.company.phone}\n\n${t('errorMakingCall')}`,

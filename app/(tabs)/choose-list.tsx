@@ -1,72 +1,111 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, Alert, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useJobs } from '@/context/JobsContext';
-import { JobData } from '@/types/job';
+import { JobData, JOB_TYPE_ICONS } from '@/types/job';
+import SmartImage from '@/components/SmartImage';
+import { iconMap } from '@/constants/iconMap';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Swipeable } from 'react-native-gesture-handler';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
 export default function ListScreen() {
   const [selected, setSelected] = useState<string[]>([]);
   const { t } = useTranslation();
-  const { chosenJobs } = useJobs();
+  const { chosenJobs, filteredChosenJobs, markRefused } = useJobs();
   const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight?.() || 0;
+
+  // Debug: observe chosen jobs and selection state
+  React.useEffect(() => {
+    console.log('[ChooseList] chosenJobs', chosenJobs.map(j => j.id));
+  }, [chosenJobs]);
+  React.useEffect(() => {
+    console.log('[ChooseList] filteredChosenJobs', filteredChosenJobs.map(j => j.id));
+  }, [filteredChosenJobs]);
+  React.useEffect(() => {
+    console.log('[ChooseList] selected local', selected);
+  }, [selected]);
+  // console.log removed: referenced undefined variables currentIndex/job
 
   const toggleSelect = (id: string) => {
     setSelected(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
 
   const handleBulkApply = () => {
-    alert(
-      t('bulkApplyAlert', { count: selected.length })
-    );
+    Alert.alert(t('bulkApplyAlert', { count: selected.length }));
   };
 
   return (
     <View style={[styles.container, { paddingTop: 70 + insets.top, paddingBottom: 70 + insets.bottom }] }>
-      {chosenJobs.length === 0 ? (
+      {filteredChosenJobs.length === 0 ? (
         <View style={styles.emptyBox}>
           <Text style={styles.emptyText}>{t('noJobs')}</Text>
         </View>
       ) : (
         <>
-          <Text style={{ paddingHorizontal: 16, marginBottom: 8, color: '#666' }}>{t('jobCount', { count: chosenJobs.length })}</Text>
-          <FlatList
-            data={chosenJobs}
-            keyExtractor={item => item.id}
-            contentContainerStyle={{ paddingBottom: 90 }}
-            showsVerticalScrollIndicator={false}
-            extraData={{ selected, chosenLen: chosenJobs.length }}
-            style={{ flex: 1 }}
-            renderItem={({ item }: { item: JobData }) => (
-              <View style={styles.jobBox}>
-                <TouchableOpacity onPress={() => toggleSelect(item.id)} style={styles.checkbox}>
-                  {selected.includes(item.id) && <View style={styles.checkedBox} />}
-                </TouchableOpacity>
-                <View style={{ flex: 1 }}>
-                  {/* 1-qator */}
-                  <View style={styles.row}>
-                    <Image source={require('../../assets/images/icons/company.png')} style={styles.rowIcon} />
-                    <Text style={styles.companyName}>{item.title}</Text>
-                    <View style={{ flex: 1 }} />
-                  </View>
-                  {/* 2-qator */}
-                  <View style={styles.row}>
-                    <Image source={require('../../assets/images/icons/policeman.png')} style={styles.rowIcon} />
-                    <Text style={styles.japaneseLevel}>{item.japaneseLevel}</Text>
-                    <View style={{ flex: 1 }} />
-                    <Text style={styles.wage}>{`${item.salary.currency}${item.salary.min}〜${item.salary.max}`}</Text>
-                  </View>
-                </View>
-              </View>
-            )}
-          />
           {selected.length > 0 && (
-            <TouchableOpacity style={styles.bulkApplyBtn} onPress={handleBulkApply}>
-              <Text style={{ color: '#fff', fontWeight: 'bold' }}>
-                {t('bulkApplyBtn', { count: selected.length })}
-              </Text>
-            </TouchableOpacity>
+            <View style={[styles.headerBar, { marginBottom: 8 }]}>
+              <View style={styles.headerContent}>
+                <TouchableOpacity style={styles.headerApplyBtn} onPress={handleBulkApply}>
+                  <Text style={styles.headerApplyText}>
+                    {t('bulkApplyBtn', { count: selected.length })}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           )}
+          <FlatList
+            data={filteredChosenJobs}
+            keyExtractor={item => item.id}
+            contentContainerStyle={{ paddingBottom: 140 }}
+            showsVerticalScrollIndicator={false}
+            extraData={{ selected, chosenLen: filteredChosenJobs.length }}
+            style={{ flex: 1 }}
+            scrollEnabled={true}
+            removeClippedSubviews={false}
+            initialNumToRender={20}
+            maxToRenderPerBatch={20}
+            windowSize={10}
+            renderItem={({ item, index }: { item: JobData, index: number }) => {
+              const onRefuse = () => {
+                markRefused(item.id);
+                setSelected(prev => prev.filter(i => i !== item.id));
+              };
+              const RightActions = () => (
+                <View style={styles.rightActionContainer}>
+                  <Pressable style={styles.rightActionButton} onPress={onRefuse}>
+                    <Text style={styles.rightActionText}>X</Text>
+                  </Pressable>
+                </View>
+              );
+              return (
+                <Swipeable renderRightActions={RightActions} overshootRight={false}>
+                  <View style={styles.jobBox}>
+                    <TouchableOpacity onPress={() => toggleSelect(item.id)} style={styles.checkbox}>
+                      {selected.includes(item.id) && <View style={styles.checkedBox} />}
+                    </TouchableOpacity>
+                    <View style={{ flex: 1 }}>
+                      {/* 1-qator */}
+                      <View style={styles.row}>
+                        <SmartImage source={iconMap.company} style={styles.rowIcon} />
+                        <Text style={styles.companyName}>{`${index + 1}. ${item.title}`}</Text>
+                        <View style={{ flex: 1 }} />
+                      </View>
+                      {/* 2-qator */}
+                      <View style={styles.row}>
+                        <Text style={styles.jobTypeIcon}>{JOB_TYPE_ICONS[item.jobType]}</Text>
+                        <Text style={styles.japaneseLevel}>{item.japaneseLevel}</Text>
+                        <View style={{ flex: 1 }} />
+                        <Text style={styles.wage}>{`${item.salary.currency}${item.salary.min}〜${item.salary.max}`}</Text>
+                      </View>
+                    </View>
+                  </View>
+                </Swipeable>
+              );
+            }}
+          />
+          {/* Bottom floating button removed to avoid overlapping jobs */}
         </>
       )}
     </View>
@@ -74,7 +113,21 @@ export default function ListScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9efe7' },
+  container: { flex: 1, backgroundColor: '#f9efe7', position: 'relative' },
+  headerContent: {
+    height: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
+  headerApplyBtn: {
+    backgroundColor: '#000',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  headerApplyText: { color: '#fff', fontWeight: 'bold' },
   jobBox: {
     flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#eee',
   },
@@ -87,9 +140,7 @@ const styles = StyleSheet.create({
   checkedBox: {
     width: 12, height: 12, borderRadius: 6, backgroundColor: '#000',
   },
-  bulkApplyBtn: {
-    position: 'absolute', bottom: 20, left: 20, right: 20, backgroundColor: '#000', padding: 16, borderRadius: 30, alignItems: 'center',
-  },
+  // bulkApplyBtn removed (replaced by headerApplyBtn)
   emptyBox: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyText: { color: '#888', fontSize: 18 },
   row: { flexDirection: 'row', alignItems: 'center', marginBottom: 2 },
@@ -97,4 +148,25 @@ const styles = StyleSheet.create({
   companyName: { flex: 1, textAlign: 'center', fontWeight: 'bold', fontSize: 16 },
   japaneseLevel: { flex: 1, textAlign: 'center', fontSize: 14, color: '#333' },
   wage: { fontWeight: 'bold', fontSize: 14, color: '#222' },
+  // Swipe-to-refuse styles
+  rightActionContainer: {
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+  },
+  rightActionButton: {
+    width: 64,
+    backgroundColor: '#e74c3c',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%',
+  },
+  rightActionText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  jobTypeIcon: {
+    fontSize: 18,
+    marginRight: 8,
+  },
 });

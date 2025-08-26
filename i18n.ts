@@ -16,6 +16,10 @@ i18n.use(initReactI18next).init({
   interpolation: {
     escapeValue: false,
   },
+  react: {
+    useSuspense: false, // React Native: Suspense ishlatmaymiz
+  },
+  returnNull: false,
 });
 
 export default i18n;

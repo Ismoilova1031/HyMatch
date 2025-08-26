@@ -6,6 +6,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import 'react-native-gesture-handler';
+import '@/i18n';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { JobsProvider } from '@/context/JobsContext';
 

@@ -12,6 +12,8 @@ import { useColorScheme } from '@/components/useColorScheme';
 import HeaderWithFilter from '@/components/HeaderWithFilter';
 import FilterModal from '@/components/FilterModal';
 import MenuModal from '@/components/MenuModal';
+import { useJobs } from '@/context/JobsContext';
+import { mapFilterModalToJobFilter, mapFilterModalToJobSort } from '@/utils/jobFiltering';
 
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>['name'];
@@ -28,6 +30,7 @@ export default function TabLayout() {
   const currentTab = segments[1] === undefined ? 'index' : segments[1];
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { setFilter, setSort } = useJobs();
 
   // 👉 Shu yerda sizning onApply funksiyangiz:
   const handleFilterApply = (
@@ -36,11 +39,10 @@ export default function TabLayout() {
     wage: number,
     filters: Record<string, string[]>
   ) => {
-    console.log('Sort Key:', sortKey);
-    console.log('Sort Direction:', sortDirection);
-    console.log('Wage:', wage);
-    console.log('Filters:', filters);
-    // TODO: filtering logic goes here
+    const mappedFilter = mapFilterModalToJobFilter(wage, filters);
+    const mappedSort = mapFilterModalToJobSort(sortKey, sortDirection);
+    setFilter(mappedFilter);
+    setSort(mappedSort);
   };
 
   return (

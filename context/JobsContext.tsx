@@ -1,11 +1,17 @@
-import React, { createContext, useContext, useMemo, useState, ReactNode } from 'react';
-import { JobData } from '@/types/job';
+import React, { createContext, useContext, useMemo, useState, ReactNode, useEffect } from 'react';
+import { JobData, JobFilter, JobSort } from '@/types/job';
 import { sampleJobs } from '@/data/sampleJobs';
+import { applyFilterAndSort } from '@/utils/jobFiltering';
 
 interface JobsContextValue {
   allJobs: JobData[];
+  filteredJobs: JobData[];
+  filteredChosenJobs: JobData[];
+  filter: JobFilter;
+  sort: JobSort;
+  setFilter: (f: JobFilter) => void;
+  setSort: (s: JobSort) => void;
   chosenJobs: JobData[];
-  refusedJobs: JobData[];
   markChosen: (id: string) => void;
   markRefused: (id: string) => void;
 }
@@ -14,30 +20,50 @@ const JobsContext = createContext<JobsContextValue | undefined>(undefined);
 
 export function JobsProvider({ children }: { children: ReactNode }) {
   const [allJobs] = useState<JobData[]>(sampleJobs);
-  const [chosenIds, setChosenIds] = useState<Set<string>>(new Set());
-  const [refusedIds, setRefusedIds] = useState<Set<string>>(new Set());
+  // Use array instead of Set to avoid subtle state identity issues with Sets
+  const [chosenIds, setChosenIds] = useState<string[]>([]);
+  const [filter, setFilter] = useState<JobFilter>({
+    jobTypes: [],
+    japaneseLevel: [],
+    salaryRange: { min: 0, max: Number.MAX_SAFE_INTEGER },
+    commuteConvenience: [],
+    workImportance: [],
+  });
+  const [sort, setSort] = useState<JobSort>({ type: 'postedDate', direction: 'desc' });
+  const [filteredJobs, setFilteredJobs] = useState<JobData[]>(allJobs);
 
   const markChosen = (id: string) => {
-    setChosenIds(prev => new Set(prev).add(id));
-    setRefusedIds(prev => {
-      const next = new Set(prev);
-      next.delete(id);
+    setChosenIds(prev => {
+      const next = prev.includes(id) ? prev : [...prev, id];
       return next;
     });
   };
 
   const markRefused = (id: string) => {
-    setRefusedIds(prev => new Set(prev).add(id));
-    // NOTE: Do NOT remove from chosenIds.
-    // Requirement: refusal should not change the chosen (job list) state.
+    setChosenIds(prev => prev.filter(x => x !== id));
   };
 
-  const chosenJobs = useMemo(() => allJobs.filter(j => chosenIds.has(j.id)), [allJobs, chosenIds]);
-  const refusedJobs = useMemo(() => allJobs.filter(j => refusedIds.has(j.id)), [allJobs, refusedIds]);
+  const chosenJobs = useMemo(() => allJobs.filter(j => chosenIds.includes(j.id)), [allJobs, chosenIds]);
+  const filteredChosenJobs = useMemo(
+    () => applyFilterAndSort(chosenJobs, filter, sort),
+    [chosenJobs, filter, sort]
+  );
+
+  useEffect(() => {
+    console.log('[JobsContext] chosenIds changed', chosenIds);
+  }, [chosenIds]);
+
+  useEffect(() => {
+    console.log('[JobsContext] chosenJobs changed', chosenJobs.map(j => j.id));
+  }, [chosenJobs]);
+
+  useEffect(() => {
+    setFilteredJobs(applyFilterAndSort(allJobs, filter, sort));
+  }, [allJobs, filter, sort]);
 
   const value: JobsContextValue = useMemo(
-    () => ({ allJobs, chosenJobs, refusedJobs, markChosen, markRefused }),
-    [allJobs, chosenJobs, refusedJobs]
+    () => ({ allJobs, filteredJobs, filteredChosenJobs, filter, sort, setFilter, setSort, chosenJobs, markChosen, markRefused }),
+    [allJobs, filteredJobs, filteredChosenJobs, filter, sort, chosenJobs]
   );
 
   return <JobsContext.Provider value={value}>{children}</JobsContext.Provider>;

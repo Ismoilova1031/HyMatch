@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { iconMap } from '../constants/iconMap';
 import SmartImage from '../components/SmartImage';
+import { useTranslation } from 'react-i18next';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = 0.25 * SCREEN_WIDTH;
@@ -30,7 +31,6 @@ interface Job {
   icons: string[];
 }
 
-// Sample data (10 ta karta)
 const jobs: Job[] = Array.from({ length: 10 }, (_, i) => ({
   id: i + 1,
   company: `Company_${i + 1}`,
@@ -45,6 +45,7 @@ const jobs: Job[] = Array.from({ length: 10 }, (_, i) => ({
 }));
 
 export default function SwipeScreen() {
+  const { t } = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedText, setSelectedText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -64,10 +65,8 @@ export default function SwipeScreen() {
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onPanResponderGrant: () => {
-        // Reset offset when starting new gesture
         translateX.setOffset(0);
         translateY.setOffset(0);
-        // Also reset the current values to ensure clean gesture start
         translateX.setValue(0);
         translateY.setValue(0);
         rotate.setValue(0);
@@ -75,8 +74,6 @@ export default function SwipeScreen() {
       onPanResponderMove: (evt, gestureState) => {
         translateX.setValue(gestureState.dx);
         translateY.setValue(gestureState.dy);
-        
-        // Swipe yo'nalishiga qarab overlay ko'rsatish
         if (gestureState.dx < -10) {
           setIsSwipingLeft(true);
           setIsSwipingRight(false);
@@ -133,7 +130,7 @@ export default function SwipeScreen() {
   ).current;
 
   const renderCard = (job: Job, index: number) => {
-    if (index >= currentIndex + 3) return null; // Faqat 3 ta card ko'rsatamiz
+    if (index >= currentIndex + 3) return null;
 
     const isFirst = index === currentIndex;
     const isSecond = index === currentIndex + 1;
@@ -177,25 +174,25 @@ export default function SwipeScreen() {
           cardStyle,
           {
             position: 'absolute',
-            top: (index - currentIndex) * 8, // Har bir card biroz pastda
-            left: (index - currentIndex) * 5, // Har bir card biroz o'ngda
+            top: (index - currentIndex) * 8,
+            left: (index - currentIndex) * 5,
           }
         ]}
         {...(isFirst ? panResponder.panHandlers : {})}
       >
-        {/* Qator 1 */}
+        {/* Row 1 */}
         <View style={styles.row}>
-          <Pressable onPress={() => handlePress('Kampaniya nomi!')}>
+          <Pressable onPress={() => handlePress(t('companyName'))}>
             <SmartImage source={iconMap.company} style={styles.icon} />
           </Pressable>
           <Text style={styles.text}>{job.company}</Text>
         </View>
         <View style={styles.separator} />
 
-        {/* Qator 2 */}
+        {/* Row 2 */}
         <View style={styles.rowSpaceBetween}>
           <View style={styles.row}>
-            <Pressable onPress={() => handlePress('Ish turi!')}>
+            <Pressable onPress={() => handlePress(t('jobType'))}>
               <SmartImage source={iconMap.todo} style={styles.icon} />
             </Pressable>
             <Text> {job.jobTitle}</Text>
@@ -204,17 +201,17 @@ export default function SwipeScreen() {
         </View>
         <View style={styles.separator} />
 
-        {/* Qator 3 */}
+        {/* Row 3 */}
         <View style={styles.rowSpaceBetween}>
           <View style={styles.row}>
-            <Pressable onPress={() => handlePress('Maosh!')}>
+            <Pressable onPress={() => handlePress(t('wage'))}>
               <SmartImage source={iconMap.coin} style={styles.icon} />
             </Pressable>
             <Text> {job.wage}</Text>
           </View>
           <View style={{ alignItems: 'flex-end' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Pressable onPress={() => handlePress('Yapon tili darajasi!')}>
+              <Pressable onPress={() => handlePress(t('japaneseLevel'))}>
                 <SmartImage source={iconMap.language} style={styles.icon} />
               </Pressable>
               <View style={{ alignItems: 'center', marginLeft: 8 }}>
@@ -232,16 +229,16 @@ export default function SwipeScreen() {
         </View>
         <View style={styles.separator} />
 
-        {/* Qator 4 */}
+        {/* Row 4 */}
         <View style={styles.rowSpaceBetween}>
           <View style={styles.row}>
-            <Pressable onPress={() => handlePress('Yurish vaqti!')}>
+            <Pressable onPress={() => handlePress(t('commute'))}>
               <SmartImage source={iconMap.steps} style={styles.icon} />
             </Pressable>
             <Text> {job.commuteTime}</Text>
           </View>
           <View style={styles.row}>
-            <Pressable onPress={() => handlePress('Vokzal!')}>
+            <Pressable onPress={() => handlePress(t('station'))}>
               <SmartImage source={iconMap.train} style={styles.icon} />
             </Pressable>
             <Text> {job.station}</Text>
@@ -249,9 +246,9 @@ export default function SwipeScreen() {
         </View>
         <View style={styles.separator} />
 
-        {/* Qator 5 */}
+        {/* Row 5 */}
         <View style={styles.row}>
-          <Pressable onPress={() => handlePress('Ish kunlari!')}>
+          <Pressable onPress={() => handlePress(t('workDays'))}>
             <SmartImage source={iconMap.calendar} style={styles.icon} />
           </Pressable>
           {Array.isArray(job.days) &&
@@ -268,16 +265,16 @@ export default function SwipeScreen() {
             ))}
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 6 }}>
-          <Pressable onPress={() => handlePress('Ish vaqti!')}>
+          <Pressable onPress={() => handlePress(t('shiftTime'))}>
             <SmartImage source={iconMap.clock} style={{ width: 14, height: 14, marginRight: 6 }} />
           </Pressable>
           <Text>{job.shiftTime}</Text>
         </View>
         <View style={styles.separator} />
 
-        {/* Qator 6 */}
+        {/* Row 6 */}
         <View style={styles.row}>
-          <Pressable onPress={() => handlePress('Ish belgilar!')}>
+          <Pressable onPress={() => handlePress(t('icons'))}>
             <SmartImage source={iconMap.star} style={[styles.icon, { marginRight: 8 }]} />
           </Pressable>
           {Array.isArray(job.icons) &&
@@ -307,7 +304,7 @@ export default function SwipeScreen() {
           <View style={styles.modalBox}>
             <Text style={styles.modalText}>{selectedText}</Text>
             <Pressable style={styles.button} onPress={() => setModalVisible(false)}>
-              <Text style={styles.buttonText}>Yopish</Text>
+              <Text style={styles.buttonText}>{t('close')}</Text>
             </Pressable>
           </View>
         </View>
@@ -318,11 +315,11 @@ export default function SwipeScreen() {
         {jobs.map((job, index) => renderCard(job, index))}
       </View>
 
-      {/* Overlay Labels - Now positioned relative to the card and move with it */}
+      {/* Overlay Labels */}
       {isSwipingLeft && (
         <Animated.View 
           style={[
-            styles.overlayLabelRight, // Changed to overlayLabelRight for top-right corner
+            styles.overlayLabelRight,
             {
               transform: [
                 { translateX: translateX },
@@ -343,7 +340,7 @@ export default function SwipeScreen() {
       {isSwipingRight && (
         <Animated.View 
           style={[
-            styles.overlayLabelLeft, // Changed to overlayLabelLeft for top-left corner
+            styles.overlayLabelLeft,
             {
               transform: [
                 { translateX: translateX },
@@ -361,7 +358,7 @@ export default function SwipeScreen() {
         </Animated.View>
       )}
 
-      {/* Trash – chap burchakda 1/4 aylana */}
+      {/* Trash icon */}
       <View style={styles.quarterCircleLeft}>
         <SmartImage
           source={
