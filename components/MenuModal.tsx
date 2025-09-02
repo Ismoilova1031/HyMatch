@@ -41,21 +41,21 @@ export default function MenuModal({ visible, onClose }: MenuModalProps) {
       t('languageSelectDesc'),
       [
         { 
-          text: t('japanese'), 
+          text: '日本語', 
           onPress: () => {
             setSelectedLanguage('ja');
             setTimeout(() => i18n.changeLanguage('ja'), 0);
           }
         },
         { 
-          text: t('english'), 
+          text: 'English', 
           onPress: () => {
             setSelectedLanguage('en');
             setTimeout(() => i18n.changeLanguage('en'), 0);
           }
         },
         { 
-          text: t('uzbek'), 
+          text: 'O\'zbek tili', 
           onPress: () => {
             setSelectedLanguage('uz');
             setTimeout(() => i18n.changeLanguage('uz'), 0);
