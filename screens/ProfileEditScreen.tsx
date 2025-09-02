@@ -152,9 +152,6 @@ export default function ProfileEditScreen() {
   const [isLoadingAddress, setIsLoadingAddress] = useState(false);
   const [fetchedAddress, setFetchedAddress] = useState<string>('');
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-  // removed: const [isMenuVisible, setIsMenuVisible] = useState(false);
-  // removed: const openMenu = () => setIsMenuVisible(true);
-  // removed: const closeMenu = () => setIsMenuVisible(false);
 
   const autoFillAddress = async () => {
     const postalCode = profile.address.postalCode.trim();
@@ -328,27 +325,32 @@ export default function ProfileEditScreen() {
     icon?: any,
     error?: string,
     readonly?: boolean
-  ) => (
-    <View style={styles.inputRow}>
-      <View style={styles.iconContainer}>
-        {icon && <SmartImage source={icon} style={styles.smallIcon} />}
+  ) => {
+    const styles = getStyles({});
+    return (
+      <View style={styles.inputRow}>
+        <View style={styles.iconContainer}>
+          {icon && <SmartImage source={icon} style={styles.smallIcon} />}
+        </View>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={[
+              styles.textInput, 
+              error && styles.inputError,
+              readonly && styles.readonlyInput,
+              { color: '#000', backgroundColor: '#fff' } // Apply colors through style prop
+            ]}
+            value={value}
+            onChangeText={onChangeText}
+            placeholder={placeholder}
+            placeholderTextColor="#666" // Set placeholder color
+            editable={!readonly}
+          />
+          {error && <Text style={styles.errorText}>{error}</Text>}
+        </View>
       </View>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={[
-            styles.textInput, 
-            error && styles.inputError,
-            readonly && styles.readonlyInput
-          ]}
-          value={value}
-          onChangeText={onChangeText}
-          placeholder={placeholder}
-          editable={!readonly}
-        />
-        {error && <Text style={styles.errorText}>{error}</Text>}
-      </View>
-    </View>
-  );
+    );
+  };
 
   const renderPicker = (
     label: string,
@@ -357,115 +359,138 @@ export default function ProfileEditScreen() {
     items: readonly ({ key: string; label: string } | string)[],
     placeholder: string,
     icon?: any
-  ) => (
-    <View style={styles.inputRow}>
-      <View style={styles.iconContainer}>
-        {icon && <SmartImage source={icon} style={styles.smallIcon} />}
-      </View>
-      <View style={styles.inputContainer}>
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={value}
-            onValueChange={onValueChange}
-            style={styles.picker}
-          >
-            <Picker.Item label={placeholder} value="" />
-            {items.map((item, index) => (
-              <Picker.Item
-                key={index}
-                label={
-                  typeof item === 'string'
-                    ? t(optionValueTranslationKey[item] || item)
-                    : t(optionValueTranslationKey[item.label] || item.label)
-                }
-                value={typeof item === 'string' ? item : item.key}
-              />
-            ))}
-          </Picker>
+  ) => {
+    const styles = getStyles({});
+    return (
+      <View style={styles.inputRow}>
+        <View style={styles.iconContainer}>
+          {icon && <SmartImage source={icon} style={styles.smallIcon} />}
         </View>
-      </View>
-    </View>
-  );
-
-  const renderGenderSelection = () => (
-    <View style={styles.inputRow}>
-      <View style={styles.iconContainer}>
-        <SmartImage source={iconMap.gender} style={styles.smallIcon} />
-      </View>
-      <View style={styles.inputContainer}>
-        <View style={styles.genderOptionsContainer}>
-          {[
-            { key: 'male' as const, icon: iconMap.men },
-            { key: 'female' as const, icon: iconMap.women },
-          ].map((item) => {
-            const active = profile.gender === item.key;
-            return (
-              <TouchableOpacity
-                key={item.key}
-                style={[styles.genderOption, active && styles.genderOptionActive]}
-                onPress={() => setProfile({ ...profile, gender: item.key })}
-              >
-                {active ? (
-                  <SmartImage source={iconMap.done} style={styles.genderIndicatorIcon} />
-                ) : (
-                  <View style={styles.genderIndicator} />
-                )}
-                <SmartImage source={item.icon} style={styles.genderIcon} />
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
-    </View>
-  );
-
-  const renderWorkDays = () => (
-    <View style={styles.inputRow}>
-      <View style={styles.iconContainer}>
-        <SmartImage source={iconMap.calendar} style={styles.smallIcon} />
-      </View>
-      <View style={styles.inputContainer}>
-        <View style={styles.workDaysContainer}>
-          {WORK_DAYS.map((day) => (
-            <TouchableOpacity
-              key={day.key}
-              style={[
-                styles.workDayButton,
-                profile.preferredWorkDays.includes(day.key) && styles.workDayButtonActive
-              ]}
-              onPress={() => {
-                const newWorkDays = profile.preferredWorkDays.includes(day.key)
-                  ? profile.preferredWorkDays.filter(d => d !== day.key)
-                  : [...profile.preferredWorkDays, day.key];
-                setProfile({ ...profile, preferredWorkDays: newWorkDays });
-              }}
+        <View style={styles.inputContainer}>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={value}
+              onValueChange={onValueChange}
+              style={[styles.picker, { color: '#000' }]} // Apply text color through style
+              dropdownIconColor="#000" // Set dropdown icon color
             >
-              <Text style={[
-                styles.workDayButtonText,
-                profile.preferredWorkDays.includes(day.key) && styles.workDayButtonTextActive
-              ]}>
-                {day.label.slice(0, 1)}
-              </Text>
-            </TouchableOpacity>
-          ))}
+              <Picker.Item 
+                label={placeholder} 
+                value="" 
+                style={{ color: '#666' }} // Apply placeholder color through style
+              />
+              {items.map((item, index) => {
+                const label = typeof item === 'string'
+                  ? t(optionValueTranslationKey[item] || item)
+                  : t(optionValueTranslationKey[item.label] || item.label);
+                const itemValue = typeof item === 'string' ? item : item.key;
+                
+                return (
+                  <Picker.Item
+                    key={index}
+                    label={label}
+                    value={itemValue}
+                    style={{ color: '#000' }} // Apply item text color through style
+                  />
+                );
+              })}
+            </Picker>
+          </View>
         </View>
       </View>
-    </View>
-  );
+    );
+  };
+
+  const renderGenderSelection = () => {
+    const styles = getStyles({});
+    return (
+      <View style={styles.inputRow}>
+        <View style={styles.iconContainer}>
+          <SmartImage source={iconMap.gender} style={styles.smallIcon} />
+        </View>
+        <View style={styles.inputContainer}>
+          <View style={styles.genderOptionsContainer}>
+            {[
+              { key: 'male' as const, icon: iconMap.men },
+              { key: 'female' as const, icon: iconMap.women },
+            ].map((item) => {
+              const active = profile.gender === item.key;
+              return (
+                <TouchableOpacity
+                  key={item.key}
+                  style={[styles.genderOption, active && styles.genderOptionActive]}
+                  onPress={() => setProfile({ ...profile, gender: item.key })}
+                >
+                  {active ? (
+                    <SmartImage source={iconMap.done} style={styles.genderIndicatorIcon} />
+                  ) : (
+                    <View style={styles.genderIndicator} />
+                  )}
+                  <SmartImage source={item.icon} style={styles.genderIcon} />
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  const renderWorkDays = () => {
+    const styles = getStyles({});
+    return (
+      <View style={styles.inputRow}>
+        <View style={styles.iconContainer}>
+          <SmartImage source={iconMap.calendar} style={styles.smallIcon} />
+        </View>
+        <View style={styles.inputContainer}>
+          <View style={styles.workDaysContainer}>
+            {WORK_DAYS.map((day) => (
+              <TouchableOpacity
+                key={day.key}
+                style={[
+                  styles.workDayButton,
+                  profile.preferredWorkDays.includes(day.key) && styles.workDayButtonActive
+                ]}
+                onPress={() => {
+                  const newWorkDays = profile.preferredWorkDays.includes(day.key)
+                    ? profile.preferredWorkDays.filter(d => d !== day.key)
+                    : [...profile.preferredWorkDays, day.key];
+                  setProfile({ ...profile, preferredWorkDays: newWorkDays });
+                }}
+              >
+                <Text style={[
+                  styles.workDayButtonText,
+                  profile.preferredWorkDays.includes(day.key) && styles.workDayButtonTextActive
+                ]}>
+                  {day.label.slice(0, 1)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      </View>
+    );
+  };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.content}>
+    <ScrollView style={getStyles({}).container}>
+      <View style={getStyles({}).content}>
         {/* removed menu button and popup menu */}
         {/* 氏名と写真 */}
-        <View style={styles.inputRow}>
-          <View style={styles.iconContainer}>
-            <SmartImage source={iconMap.id_card} style={styles.smallIcon} />
+        <View style={getStyles({}).inputRow}>
+          <View style={getStyles({}).iconContainer}>
+            <SmartImage source={iconMap.id_card} style={getStyles({}).smallIcon} />
           </View>
-          <View style={styles.inputContainer}>
-            <View style={styles.nameRow}>
+          <View style={getStyles({}).inputContainer}>
+            <View style={getStyles({}).nameRow}>
               <TextInput
-                style={[styles.textInput, styles.nameInput, errors.fullName && styles.inputError]}
+                style={[
+                  getStyles({}).textInput, 
+                  getStyles({}).nameInput, 
+                  errors.fullName && getStyles({}).inputError,
+                  { color: '#000', backgroundColor: '#fff' }
+                ]}
                 value={`${profile.firstName} ${profile.lastName}`.trim()}
                 onChangeText={(text) => {
                   const names = text.split(' ');
@@ -476,20 +501,20 @@ export default function ProfileEditScreen() {
                   });
                   if (text.trim()) clearError('fullName');
                 }}
-                placeholder={t('enterFullNamePlaceholder')}
+                placeholderTextColor="#666"
               />
               <TouchableOpacity 
-                style={styles.imageIconButton}
+                style={getStyles({}).imageIconButton}
                 onPress={() => pickImage('profile')}
               >
-                <SmartImage source={iconMap.person} style={styles.imageIcon} />
+                <SmartImage source={iconMap.person} style={getStyles({}).imageIcon} />
               </TouchableOpacity>
             </View>
             {errors.fullName && (
-              <Text style={styles.errorText}>{errors.fullName}</Text>
+              <Text style={getStyles({}).errorText}>{errors.fullName}</Text>
             )}
             {profile.profilePhoto && (
-              <Image source={{ uri: profile.profilePhoto }} style={styles.previewImage} />
+              <Image source={{ uri: profile.profilePhoto }} style={getStyles({}).previewImage} />
             )}
           </View>
         </View>
@@ -573,29 +598,29 @@ export default function ProfileEditScreen() {
           errors.postalCode
         )}
         
-        <View style={styles.autoFillContainer}>
+        <View style={getStyles({}).autoFillContainer}>
           <TouchableOpacity 
-            style={[styles.autoFillButton, isLoadingAddress && styles.autoFillButtonDisabled]}
+            style={[getStyles({}).autoFillButton, isLoadingAddress && getStyles({}).autoFillButtonDisabled]}
             onPress={autoFillAddress}
             disabled={isLoadingAddress}
           >
             {isLoadingAddress ? (
               <ActivityIndicator color="#fff" size="small" />
             ) : (
-              <Text style={styles.autoFillButtonText}>{t('autoFillAddress')}</Text>
+              <Text style={getStyles({}).autoFillButtonText}>{t('autoFillAddress')}</Text>
             )}
           </TouchableOpacity>
-          <Text style={styles.autoFillHint}>{t('autoFillHint')}</Text>
+          <Text style={getStyles({}).autoFillHint}>{t('autoFillHint')}</Text>
           
           {fetchedAddress && (
-            <View style={styles.fetchedAddressContainer}>
-              <View style={styles.fetchedAddressHeader}>
-                <Text style={styles.fetchedAddressLabel}>{t('fetchedAddress')}</Text>
-                <TouchableOpacity onPress={clearAddress} style={styles.clearButton}>
-                  <Text style={styles.clearButtonText}>{t('clear')}</Text>
+            <View style={getStyles({}).fetchedAddressContainer}>
+              <View style={getStyles({}).fetchedAddressHeader}>
+                <Text style={getStyles({}).fetchedAddressLabel}>{t('fetchedAddress')}</Text>
+                <TouchableOpacity onPress={clearAddress} style={getStyles({}).clearButton}>
+                  <Text style={getStyles({}).clearButtonText}>{t('clear')}</Text>
                 </TouchableOpacity>
               </View>
-              <Text style={styles.fetchedAddressText}>{fetchedAddress}</Text>
+              <Text style={getStyles({}).fetchedAddressText}>{fetchedAddress}</Text>
             </View>
           )}
         </View>
@@ -684,21 +709,21 @@ export default function ProfileEditScreen() {
         )}
 
         {/* ビザ写真 */}
-        <View style={styles.inputRow}>
-          <View style={styles.iconContainer}>
-            <SmartImage source={iconMap.id_card} style={styles.smallIcon} />
+        <View style={getStyles({}).inputRow}>
+          <View style={getStyles({}).iconContainer}>
+            <SmartImage source={iconMap.id_card} style={getStyles({}).smallIcon} />
           </View>
-          <View style={styles.inputContainer}>
+          <View style={getStyles({}).inputContainer}>
             <TouchableOpacity 
-              style={styles.imageButton}
+              style={getStyles({}).imageButton}
               onPress={() => pickImage('visa')}
             >
-              <Text style={styles.imageButtonText}>
+              <Text style={getStyles({}).imageButtonText}>
                 {profile.visaStatus.visaImage ? t('changePhoto') : t('selectVisaPhoto')}
               </Text>
             </TouchableOpacity>
             {profile.visaStatus.visaImage && (
-              <Image source={{ uri: profile.visaStatus.visaImage }} style={styles.previewImage} />
+              <Image source={{ uri: profile.visaStatus.visaImage }} style={getStyles({}).previewImage} />
             )}
           </View>
         </View>
@@ -731,21 +756,21 @@ export default function ProfileEditScreen() {
           iconMap.id_card
         )}
 
-        <View style={styles.bottomButtons}>
+        <View style={getStyles({}).bottomButtons}>
           <TouchableOpacity 
-            style={[styles.confirmButton, isGeneratingPDF && styles.confirmButtonDisabled]}
+            style={[getStyles({}).confirmButton, isGeneratingPDF && getStyles({}).confirmButtonDisabled]}
             onPress={handleGenerateAndDownloadPDF}
             disabled={isGeneratingPDF}
           >
             {isGeneratingPDF ? (
               <ActivityIndicator color="#fff" size="small" />
             ) : (
-              <Text style={styles.confirmButtonText}>{t('confirmAndDownload')}</Text>
+              <Text style={getStyles({}).confirmButtonText}>{t('confirmAndDownload')}</Text>
             )}
           </TouchableOpacity>
           
           <TouchableOpacity 
-            style={styles.saveButton} 
+            style={getStyles({}).saveButton} 
             onPress={() => {
               if (validateForm()) {
                 Alert.alert(t('success'), t('profileSaved'));
@@ -753,7 +778,7 @@ export default function ProfileEditScreen() {
               }
             }}
           >
-            <Text style={styles.saveButtonText}>{t('save')}</Text>
+            <Text style={getStyles({}).saveButtonText}>{t('save')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -761,10 +786,11 @@ export default function ProfileEditScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+// Add these theme-aware styles
+const getStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9efe7',
+    backgroundColor: theme.backgroundColor,
   },
   content: {
     padding: 20,
@@ -820,6 +846,18 @@ const styles = StyleSheet.create({
     minHeight: 55,
     fontSize: 16,
     backgroundColor: '#fff',
+    color: '#000', // Text color
+  },
+  input: {
+    flex: 1,
+    height: 55,
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    color: '#000',
+    backgroundColor: '#fff',
+    fontSize: 16,
   },
   inputError: {
     borderColor: '#ff4444',
@@ -834,14 +872,18 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   pickerContainer: {
+    flex: 1,
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
     backgroundColor: '#fff',
     height: 55,
+    justifyContent: 'center',
   },
   picker: {
-    height: 55,
+    flex: 1,
+    height: 55, // Match container height
+    color: '#000', // Text color for the selected value
   },
   autoFillContainer: {
     marginBottom: 15,
@@ -969,8 +1011,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   workDayButton: {
-    width: 35,
-    height: 35,
+    width: 33,
+    height: 33,
     borderRadius: 17.5,
     borderWidth: 1,
     borderColor: '#ddd',
