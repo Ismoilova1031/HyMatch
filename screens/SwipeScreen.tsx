@@ -677,8 +677,8 @@ const styles = StyleSheet.create({
     fontSize: 24, // Kattalashtirildi
   },
   dayCircle: {
-    width: 29,
-    height: 29,
+    width: 27,
+    height: 27,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
