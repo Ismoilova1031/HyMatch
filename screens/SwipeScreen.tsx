@@ -389,47 +389,43 @@ export default function SwipeScreen() {
 
       {/* Gesture overlay removed; panHandlers are attached to the top card itself */}
       {/* Overlay Labels */}
-      {isSwipingLeft && (
-        <Animated.View 
-          style={[
-            styles.overlayLabelRight,
-            {
-              transform: [
-                { translateX: translateX },
-                { translateY: translateY }
-              ],
-              opacity: translateX.interpolate({
-                inputRange: [-SCREEN_WIDTH, 0],
-                outputRange: [1, 0.3],
-                extrapolate: 'clamp'
-              })
-            }
-          ]}
-        >
-          <SmartImage source={iconMap.refusal} style={styles.overlayImage} />
-        </Animated.View>
-      )}
+      <Animated.View 
+        style={[
+          styles.overlayLabelRight,
+          {
+            opacity: translateX.interpolate({
+              inputRange: [-SCREEN_WIDTH, 0, SCREEN_WIDTH],
+              outputRange: [1, 0, 0],
+              extrapolate: 'clamp'
+            }),
+            transform: [
+              { translateX: translateX },
+              { translateY: translateY }
+            ]
+          }
+        ]}
+      >
+        <SmartImage source={iconMap.refusal} style={styles.overlayImage} />
+      </Animated.View>
       
-      {isSwipingRight && (
-        <Animated.View 
-          style={[
-            styles.overlayLabelLeft,
-            {
-              transform: [
-                { translateX: translateX },
-                { translateY: translateY }
-              ],
-              opacity: translateX.interpolate({
-                inputRange: [0, SCREEN_WIDTH],
-                outputRange: [0.3, 1],
-                extrapolate: 'clamp'
-              })
-            }
-          ]}
-        >
-          <SmartImage source={iconMap.choose} style={styles.overlayImage} />
-        </Animated.View>
-      )}
+      <Animated.View 
+        style={[
+          styles.overlayLabelLeft,
+          {
+            opacity: translateX.interpolate({
+              inputRange: [-SCREEN_WIDTH, 0, SCREEN_WIDTH],
+              outputRange: [0, 0, 1],
+              extrapolate: 'clamp'
+            }),
+            transform: [
+              { translateX: translateX },
+              { translateY: translateY }
+            ]
+          }
+        ]}
+      >
+        <SmartImage source={iconMap.choose} style={styles.overlayImage} />
+      </Animated.View>
 
       {/* Trash */}
       <View style={styles.quarterCircleLeft}>
