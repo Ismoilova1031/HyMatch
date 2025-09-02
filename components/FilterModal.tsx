@@ -357,33 +357,44 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply }) 
 
         <ScrollView>
           {filterOptions.map(opt => (
-            <TouchableOpacity key={opt.key} onPress={() => setActiveModal(opt.key)}>
-              <View style={styles.filterRow}>
-                <View style={styles.circle}>
-                  {opt.key === 'wageRange'
-                    ? selectedWage > 1000 && (
-                        <SmartImage
-                          source={iconMap.done}
-                          style={{ width: 30, height: 30 }}
-                        />
-                      )
-                    : selectedValues[opt.key]?.length ? (
-                        <SmartImage
-                          source={iconMap.done}
-                          style={{ width: 30, height: 30 }}
-                        />
-                      ) : null}
+            <View key={opt.key} style={styles.filterRow}>
+              <TouchableOpacity 
+                onPress={() => {
+                  if (opt.key === 'wageRange') {
+                    setSelectedWage(1000);
+                  } else {
+                    setSelectedValues(prev => ({ ...prev, [opt.key]: [] }));
+                  }
+                }}
+                style={{ padding: 8 }}
+              >
+                <View style={[
+                  styles.circle,
+                  (!((opt.key === 'wageRange' && selectedWage > 1000) || selectedValues[opt.key]?.length) ? 
+                    { borderColor: '#ccc' } : {})
+                ]}>
+                  {((opt.key === 'wageRange' && selectedWage > 1000) || selectedValues[opt.key]?.length) ? (
+                    <SmartImage
+                      source={iconMap.done}
+                      style={{ width: 30, height: 30 }}
+                    />
+                  ) : null}
                 </View>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                onPress={() => setActiveModal(opt.key)}
+                style={{ flex: 1, flexDirection: 'row', alignItems: 'center', padding: 8 }}
+              >
                 <SmartImage
                   source={filterRowIcons[opt.key] || defaultIcon}
                   style={{ width: 28, height: 28, marginRight: 8 }}
                 />
                 <Text style={styles.filterLabel}>
                   {t(opt.label)}
-                  {opt.key === 'wageRange' && selectedWage ? `: ${selectedWage}円 以上` : ''}
+                  {opt.key === 'wageRange' && selectedWage > 1000 ? `: ${selectedWage}円 以上` : ''}
                 </Text>
-              </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            </View>
           ))}
         </ScrollView>
 
@@ -415,8 +426,10 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply }) 
           </View>
         </Modal>
 
-        {filterOptions.map(opt => (
-          opt.key !== 'wageRange' && (
+        {filterOptions.map(opt => {
+          if (opt.key === 'wageRange') return null;
+          
+          return (
             <Modal
               key={opt.key}
               visible={activeModal === opt.key}
@@ -426,36 +439,51 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply }) 
             >
               <View style={styles.subModalOverlay}>
                 <View style={styles.subModalBox}>
-                  <Text style={styles.subTitle}>{opt.label}</Text>
+                  <Text style={styles.subTitle}>{t(opt.label)}</Text>
                   <FlatList
                     data={opt.values}
                     keyExtractor={(item) => item}
-                    extraData={selectedValues}
                     renderItem={({ item }) => (
-                      <TouchableOpacity onPress={() => toggleValue(opt.key, item)}>
-                        <View style={styles.optionItem}>
-                          <View style={styles.checkbox}>
-                            {selectedValues[opt.key]?.includes(item) && (
-                              <SmartImage source={iconMap.done} style={{ width: 30, height: 30 }} />
-                            )}
-                          </View>
-                          <Text>{
-                            filterValueTranslationKey[item]
-                              ? t(filterValueTranslationKey[item], { defaultValue: item })
-                              : item
-                          }</Text>
+                      <TouchableOpacity
+                        style={styles.optionItem}
+                        onPress={() => {
+                          const currentValues = selectedValues[opt.key] || [];
+                          const newValues = currentValues.includes(item)
+                            ? currentValues.filter(v => v !== item)
+                            : [...currentValues, item];
+                          setSelectedValues(prev => ({
+                            ...prev,
+                            [opt.key]: newValues
+                          }));
+                        }}
+                      >
+                        <View style={styles.circle}>
+                          {selectedValues[opt.key]?.includes(item) && (
+                            <SmartImage 
+                              source={iconMap.done} 
+                              style={{ width: 30, height: 30 }} 
+                            />
+                          )}
                         </View>
+                        <Text>
+                          {filterValueTranslationKey[item]
+                            ? t(filterValueTranslationKey[item], { defaultValue: item })
+                            : item}
+                        </Text>
                       </TouchableOpacity>
                     )}
                   />
-                  <Pressable onPress={() => setActiveModal(null)} style={styles.closeSubModal}>
+                  <Pressable 
+                    onPress={() => setActiveModal(null)} 
+                    style={styles.closeSubModal}
+                  >
                     <Text style={{ color: '#fff' }}>{t('select')}</Text>
                   </Pressable>
                 </View>
               </View>
             </Modal>
-          )
-        ))}
+          );
+        })}
         {/* Apply button to commit filter/sort selections */}
         <Pressable onPress={handleApply} style={styles.applyButton}>
           <Text style={{ color: '#fff' }}>{t('apply')}</Text>
