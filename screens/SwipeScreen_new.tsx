@@ -183,7 +183,7 @@ export default function SwipeScreen() {
         {/* Row 1 */}
         <View style={styles.row}>
           <Pressable onPress={() => handlePress(t('companyName'))}>
-            <SmartImage source={iconMap.company} style={styles.icon} />
+            <SmartImage source={iconMap.companyISvg} style={styles.icon} />
           </Pressable>
           <Text style={styles.text}>{job.company}</Text>
         </View>

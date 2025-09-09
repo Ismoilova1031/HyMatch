@@ -224,7 +224,7 @@ export default function SwipeScreen() {
         {/* Row 1 */}
         <View style={styles.row}>
           <Pressable onPress={() => handlePress(t('companyName'))}>
-            <SmartImage source={iconMap.company} style={styles.icon} />
+            <SmartImage source={iconMap.companyISvg} style={styles.icon} />
           </Pressable>
           <Text style={styles.text}>{job.company.name}</Text>
         </View>
@@ -234,7 +234,7 @@ export default function SwipeScreen() {
         <View style={styles.rowSpaceBetween}>
           <View style={styles.row}>
             <Pressable onPress={() => handlePress(t('jobType'))}>
-              <SmartImage source={iconMap.todo} style={styles.icon} />
+              <SmartImage source={iconMap.todoISvg} style={styles.icon} />
             </Pressable>
             <Text> {job.title}</Text>
           </View>
@@ -246,7 +246,7 @@ export default function SwipeScreen() {
         <View style={styles.rowSpaceBetween}>
           <View style={styles.row}>
             <Pressable onPress={() => handlePress(t('wage'))}>
-              <SmartImage source={iconMap.coin} style={styles.icon} />
+              <SmartImage source={iconMap.coinISvg} style={styles.icon} />
             </Pressable>
             <Text>
               {`${job.salary.currency}${job.salary.min}〜${job.salary.max}`}
@@ -255,7 +255,7 @@ export default function SwipeScreen() {
           <View style={{ alignItems: 'flex-end' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Pressable onPress={() => handlePress(t('japaneseLevel'))}>
-                <SmartImage source={iconMap.language} style={styles.icon} />
+                <SmartImage source={iconMap.languageISvg} style={styles.icon} />
               </Pressable>
               <View style={{ alignItems: 'center', marginLeft: 8 }}>
                 <Text style={styles.japaneseLevelText}>{job.japaneseLevel}</Text>
@@ -282,13 +282,13 @@ export default function SwipeScreen() {
         <View style={styles.rowSpaceBetween}>
           <View style={styles.row}>
             <Pressable onPress={() => handlePress(t('commute'))}>
-              <SmartImage source={iconMap.steps} style={styles.icon} />
+              <SmartImage source={iconMap.stepsISvg} style={styles.icon} />
             </Pressable>
             <Text> {`${job.commuteTime.home} min`}</Text>
           </View>
           <View style={styles.row}>
             <Pressable onPress={() => handlePress(t('station'))}>
-              <SmartImage source={iconMap.train} style={styles.icon} />
+              <SmartImage source={iconMap.trainISvg} style={styles.icon} />
             </Pressable>
             <Text> {job.company.location}</Text>
           </View>
@@ -298,7 +298,7 @@ export default function SwipeScreen() {
         {/* Row 5 */}
         <View style={styles.row}>
           <Pressable onPress={() => handlePress(t('workDays'))}>
-            <SmartImage source={iconMap.calendar} style={styles.icon} />
+            <SmartImage source={iconMap.calendarISvg} style={styles.icon} />
           </Pressable>
           {ALL_DAYS.map((d) => {
             const isWorking = Array.isArray(job.workDays) && job.workDays.includes(d as any);
@@ -317,7 +317,7 @@ export default function SwipeScreen() {
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 6 }}>
           <Pressable onPress={() => handlePress(t('shiftTime'))}>
-            <SmartImage source={iconMap.clock} style={{ width: 14, height: 14, marginRight: 6 }} />
+            <SmartImage source={iconMap.clockISvg} style={{ width: 14, height: 14, marginRight: 6 }} />
           </Pressable>
           <Text>{'10:00 ~ 16:00'}</Text>
         </View>
@@ -326,7 +326,7 @@ export default function SwipeScreen() {
         {/* Row 6 */}
         <View style={styles.row}>
           <Pressable onPress={() => handlePress(t('icons'))}>
-            <SmartImage source={iconMap.star} style={[styles.icon, { marginRight: 8 }]} />
+            <SmartImage source={iconMap.starISvg} style={[styles.icon, { marginRight: 8 }]} />
           </Pressable>
           {['deadline', 'chine', 'trainCoin'].map((iconName, index) => (
             <SmartImage
@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
     height: 42,
     resizeMode: 'contain',
     position: 'absolute',
-    bottom: 8,
+    bottom: 22,
     left: 8,
   },
 
@@ -507,7 +507,7 @@ const styles = StyleSheet.create({
     height: 42,
     resizeMode: 'contain',
     position: 'absolute',
-    bottom: 8,
+    bottom: 22,
     right: 8,
   },
 
